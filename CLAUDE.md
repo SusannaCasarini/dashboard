@@ -11,7 +11,7 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
    come `bilancio.json`, `pagamenti.json`, `guadagni.json`, `tesserati.json`. MAI dentro il repository.
 3. Controllo: somma della colonna B di Pagamenti con D = FALSE (dalla riga 5) ≈ Bilancio C3 (scarto < 1 €)
    e somma della colonna B di Guadagni = Bilancio D3. Se non tornano, rileggi e confronta; se ancora non tornano
-   pubblica comunque (la dashboard mostra l'avviso) e segnalalo a Susanna.
+   NON pubblicare: lascia le pagine della settimana precedente e segnalalo a Susanna.
 4. `npm ci`, poi `BFD_PW_DIRETTIVO=… BFD_PW_COACH=… node build/genera.js /tmp/bfd-dati`
    (le password sono solo nel testo dell'attività programmata).
 5. Controlla con `git status` che cambino solo `direttivo/index.html` e `coach/index.html`, poi commit e push su `main`.
