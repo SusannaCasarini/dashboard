@@ -26,9 +26,9 @@
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
 .bfd { font-size: 15px; line-height: 1.45; max-width: 1100px; margin: 0 auto; padding: 16px; }
 .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.muted { color: var(--muted); font-size: 14px; }
+.muted { color: var(--muted); font-size: 13px; }
 .ok { color: var(--ok); font-weight: 600; } .bad { color: var(--bad); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; }
-h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 5vw, 34px); line-height: 1.15; margin: 0 0 8px; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 7.5vw, 50px); line-height: 1.08; margin: 4px 0 12px; letter-spacing: -.01em; }
 h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
 
 /* Schermata PIN */
@@ -41,33 +41,46 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
 
 /* Intestazione */
 .stamp { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 12px; }
-.stamp .when { background: var(--panel2); border: 1px solid #3a4763; border-radius: var(--r); padding: 8px 12px; font-size: 16px; font-weight: 600; }
+.stamp .when { background: var(--panel2); border: 1px solid #3a4763; border-radius: var(--r); padding: 6px 10px; font-size: 14px; font-weight: 600; }
 
-/* Linguette delle pagine */
-.tabs { position: sticky; top: 0; z-index: 3; background: var(--bg); display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 10px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
-.tab { min-height: 44px; padding: 8px 16px; font: inherit; font-size: 15px; font-weight: 600; border: 1px solid #3a4763; border-radius: 999px; background: var(--panel2); color: var(--fg); cursor: pointer; }
-.tab:hover { border-color: var(--acc); }
-.tab[aria-selected="true"] { background: var(--acc); color: #fff; border-color: var(--acc); box-shadow: 0 0 0 3px rgba(59,130,246,.25); }
+/* Menu delle pagine: barra scorrevole con indicatore che si sposta sotto la pagina attiva */
+.tabs { position: sticky; top: 0; z-index: 3; margin: 0 -16px 18px; padding: 0 16px;
+  background: rgba(15,20,32,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; scroll-behavior: smooth; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs-track { position: relative; display: flex; gap: 4px; width: max-content; min-width: 100%; }
+.tab { position: relative; min-height: 50px; padding: 12px 14px; font: inherit; font-size: 15px; font-weight: 500;
+  border: 0; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; transition: color .2s; }
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] { color: #fff; font-weight: 700; }
+.ind { position: absolute; bottom: 0; left: 0; height: 3px; width: 0; border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa); transition: transform .3s ease, width .3s ease; }
+.page:not([hidden]) { animation: entra .25s ease; }
+@keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .next { display: block; margin: 22px 0 0 auto; min-height: 44px; padding: 8px 18px; font: inherit; font-size: 15px; font-weight: 600; border: 1px solid var(--acc); border-radius: var(--r); background: rgba(59,130,246,.12); color: #93c5fd; cursor: pointer; }
 .lead { font-size: 16px; margin: 0 0 18px; max-width: 70ch; }
 
 /* Numeri grandi */
-.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
 .kpi, .group { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; min-width: 0; }
 .kpi h3, .group h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--muted); }
 .big { font-family: var(--serif); font-size: clamp(22px, 2.6vw, 30px); line-height: 1.15; display: block; }
 .mid { font-family: var(--serif); font-size: clamp(17px, 2vw, 21px); display: block; margin-top: 2px; }
-.kpi p, .group p { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.kpi p, .group p { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
 .groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .group h3 { color: var(--fg); font-size: 15px; }
 .group .big { font-size: 24px; margin: 2px 0 8px; }
 
 /* Un colore per ogni riquadro, così si distinguono a colpo d'occhio */
 .kpi { border-top: 4px solid var(--line); }
-.kpis .kpi:nth-child(1) { border-top-color: #60a5fa; }
-.kpis .kpi:nth-child(2) { border-top-color: #f87171; }
-.kpis .kpi:nth-child(3) { border-top-color: #4ade80; }
-.kpis .kpi:nth-child(4) { border-top-color: #fbbf24; background: linear-gradient(180deg, rgba(251,191,36,.08), var(--panel)); }
+.kpi.k-liq { border-top-color: #60a5fa; }
+.kpi.k-pag { border-top-color: #f87171; }
+.kpi.k-inc { border-top-color: #4ade80; }
+.kpi.k-tes { grid-column: 1 / -1; border-top-color: #fbbf24; padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(251,191,36,.03) 60%, var(--panel)); }
+.kpi.k-tes h3 { color: #fcd34d; font-size: 15px; }
+.kpi.k-tes .big { font-size: clamp(34px, 7vw, 52px); }
+.kpi.k-tes .mid { font-size: clamp(20px, 3.4vw, 26px); color: #fde68a; }
 .groups .group:nth-child(1) { border-top: 4px solid #4ade80; }
 .groups .group:nth-child(2) { border-top: 4px solid #a78bfa; }
 .groups .group:nth-child(3) { border-top: 4px solid #60a5fa; }
@@ -86,7 +99,7 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
 .tip div { display: flex; justify-content: space-between; gap: 12px; }
 .tip .lab { color: var(--muted); }
 .endvals { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 0; font-size: 15px; }
-.notes { margin: 10px 0 0; padding-left: 18px; font-size: 14px; color: var(--muted); }
+.notes { margin: 12px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
 
 /* Tabelle */
 .tbl { width: 100%; border-collapse: collapse; font-size: 15px; }
@@ -102,15 +115,43 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
 .memo li { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .check { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
 
+/* Pagamenti e anticipi: un riquadro per mese */
+.mesi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mese { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--mc, #60a5fa); border-radius: var(--r); overflow: hidden; }
+.mese-testa { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 10px 14px; background: var(--panel2); }
+.mese-testa b { font-size: 16px; }
+.mese-testa .tot { font-weight: 700; color: var(--mc, #60a5fa); }
+.mese-testa small { color: var(--muted); font-size: 12px; margin-left: 6px; }
+.voce { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 8px 14px; border-top: 1px solid var(--line); }
+.voce .v { font-size: 14.5px; }
+.voce .e { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; text-align: right; }
+.voce .s { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+.chip { display: inline-block; margin: 4px 6px 4px 0; padding: 4px 10px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.mese .chips { padding: 8px 14px 10px; }
+
+/* Squadre: un colore per squadra */
+.squadre { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sq { background: var(--panel); border: 1px solid var(--line); border-top: 5px solid var(--sc); border-radius: var(--r); padding: 12px 14px; }
+.sq h3 { margin: 0 0 2px; font-size: 16px; color: var(--sc); }
+.sq .sub { font-size: 12px; color: var(--muted); min-height: 16px; }
+.barra { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin: 10px 0 8px; }
+.barra i { display: block; height: 100%; background: var(--sc); border-radius: 99px; }
+.sq dl { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; margin: 0; font-size: 13.5px; }
+.sq dt { color: var(--muted); } .sq dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
 /* Tablet */
 @media (max-width: 899px) {
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi.k-pag, .kpi.k-inc { grid-column: auto; }
   .groups { grid-template-columns: 1fr; }
+  .squadre { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 599px) {
+  .mesi, .squadre { grid-template-columns: 1fr; }
 }
 /* Telefono: linguette in griglia, tabelle trasformate in schede */
 @media (max-width: 599px) {
-  .tabs { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .tab { padding: 8px 2px; font-size: 14px; border-radius: var(--r); }
+  .tab { padding: 12px 10px; font-size: 14px; }
   .next { width: 100%; }
   .kpis { gap: 8px; } .kpi { padding: 12px; } .big { font-size: 21px; } .mid { font-size: 16px; }
   .memo li { grid-template-columns: 1fr; gap: 2px; }
@@ -140,46 +181,32 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
     <span class="when">Dati aggiornati al <span data-draw="foto">—</span></span>
     <span class="muted">Dai fogli Saldo 2026/2027 e Quote 2026/2027, aggiornati ogni lunedì · saldo conto e PayPal al <span data-draw="saldo_al">—</span></span>
   </div>
-  <nav class="tabs" role="tablist" aria-label="Pagine della dashboard">
-    <button class="tab" role="tab" data-goto="riepilogo">Riepilogo</button>
-    <button class="tab" role="tab" data-goto="andamento">Andamento</button>
-    <button class="tab" role="tab" data-goto="da-incassare">Incassi</button>
-    <button class="tab" role="tab" data-goto="pagamenti-futuri">Pagamenti</button>
-    <button class="tab" role="tab" data-goto="promemoria">Anticipi</button>
-    <button class="tab" role="tab" data-goto="quote-squadre">Squadre</button>
-    <button class="tab" role="tab" data-goto="controllo">Controllo</button>
+  <nav class="tabs" aria-label="Pagine della dashboard">
+    <div class="tabs-track" role="tablist">
+      <button class="tab" role="tab" data-goto="riepilogo">Riepilogo</button>
+      <button class="tab" role="tab" data-goto="da-incassare">Incassi</button>
+      <button class="tab" role="tab" data-goto="pagamenti-futuri">Pagamenti</button>
+      <button class="tab" role="tab" data-goto="promemoria">Anticipi</button>
+      <button class="tab" role="tab" data-goto="quote-squadre">Squadre</button>
+      <button class="tab" role="tab" data-goto="controllo">Controllo</button>
+      <button class="tab" role="tab" data-goto="andamento">Andamento</button>
+      <span class="ind" aria-hidden="true"></span>
+    </div>
   </nav>
 
   <section class="page" id="riepilogo">
     <p class="lead">A fine stagione, pagato tutto e incassato tutto, dovrebbero restare tra <b class="num" data-draw="pess">—</b> e <b class="num" data-draw="ott">—</b>. Da qui a luglio il punto più basso previsto è <b class="num" data-draw="min_pess">—</b>, a <span data-draw="min_mese">—</span>.</p>
     <div class="kpis">
-      <div class="kpi"><h3>Liquidità oggi</h3><span class="big num" data-draw="liquidita">—</span>
-        <p>Conto <span class="num" data-draw="conto">—</span> + PayPal <span class="num" data-draw="paypal">—</span></p></div>
-      <div class="kpi"><h3>Da pagare</h3><span class="big num" data-draw="da_pagare">—</span>
-        <p><span data-draw="chk_pagare">—</span> Bilancio: <span class="num" data-draw="bil_pagamenti">—</span></p></div>
-      <div class="kpi"><h3>Da incassare</h3><span class="big num" data-draw="da_incassare">—</span>
-        <p><span data-draw="chk_incassare">—</span> Bilancio: <span class="num" data-draw="bil_guadagni">—</span></p></div>
-      <div class="kpi"><h3>Tesoretto netto</h3><span class="big num" data-draw="pess">—</span>
+      <div class="kpi k-tes"><h3>Tesoretto netto a fine stagione</h3><span class="big num" data-draw="pess">—</span>
         <span class="mid num">fino a <span data-draw="ott">—</span></span>
-        <p>Se pagano anche i <span data-draw="n_indecisi">—</span> indecisi (+<span class="num" data-draw="euro_indecisi">—</span>)</p></div>
+        <p>La cifra più alta vale se pagano anche i <span data-draw="n_indecisi">—</span> indecisi (+<span class="num" data-draw="euro_indecisi">—</span>)</p></div>
+      <div class="kpi k-liq"><h3>Liquidità oggi</h3><span class="big num" data-draw="liquidita">—</span>
+        <p>Conto <span class="num" data-draw="conto">—</span> + PayPal <span class="num" data-draw="paypal">—</span></p></div>
+      <div class="kpi k-pag"><h3>Da pagare</h3><span class="big num" data-draw="da_pagare">—</span>
+        <p><span data-draw="chk_pagare">—</span> Bilancio: <span class="num" data-draw="bil_pagamenti">—</span></p></div>
+      <div class="kpi k-inc"><h3>Da incassare</h3><span class="big num" data-draw="da_incassare">—</span>
+        <p><span data-draw="chk_incassare">—</span> Bilancio: <span class="num" data-draw="bil_guadagni">—</span></p></div>
     </div>
-    <button class="next" data-goto="andamento">Avanti: Andamento ›</button>
-  </section>
-
-  <section class="page" id="andamento" hidden>
-    <h2>Andamento previsto fino a luglio 2027</h2>
-    <p class="muted" style="margin:2px 0 10px">Soldi in cassa a fine mese: liquidità di oggi, meno i pagamenti del mese, più le entrate attese.</p>
-    <div class="legend"><span><i style="background:var(--c0)"></i>Pessimistica (gli indecisi non pagano)</span><span><i style="background:var(--c1)"></i>Ottimistica (pagano anche gli indecisi)</span></div>
-    <div class="chart" id="grafico"></div>
-    <div class="endvals">
-      <span>Fine luglio, pessimistica: <b class="num" data-draw="lug_p">—</b></span>
-      <span>ottimistica: <b class="num" data-draw="lug_o">—</b></span>
-    </div>
-    <ul class="notes">
-      <li>Dopo luglio restano <b class="num" data-draw="dopo_luglio">—</b> di pagamenti (agosto–dicembre 2027, spese “sparse” e tesoretti senza data): togliendoli si arriva al tesoretto netto.</li>
-      <li>Le quote in Guadagni con data 31/1/2026 sono contate a gennaio 2027 (scadenza delle prime squadre); nella stima ottimistica anche gli indecisi pagano a gennaio.</li>
-      <li>Le entrate senza data (stagione europea, CIU, rimborsi FIGeST) sono messe a luglio; i pagamenti 2025/2026 senza scadenza sono messi a novembre.</li>
-    </ul>
     <button class="next" data-goto="da-incassare">Avanti: Incassi ›</button>
   </section>
 
@@ -200,21 +227,21 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
   <section class="page" id="pagamenti-futuri" hidden>
     <h2>Pagamenti futuri</h2>
     <p class="muted">Solo quelli non ancora pagati, per mese. Da pagare in tutto: <b class="num" data-draw="da_pagare">—</b></p>
-    <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Importo</th><th>Scadenza</th></tr></thead><tbody id="tb_pagamenti"></tbody></table>
+    <div class="mesi" id="mesi_pagamenti"></div>
     <button class="next" data-goto="promemoria">Avanti: Anticipi ›</button>
   </section>
 
   <section class="page" id="promemoria" hidden>
     <h2>Promemoria anticipi</h2>
     <p class="muted" style="margin:0 0 6px">Spese che BFD anticipa e che poi tornano indietro: nel foglio non hanno importo.</p>
-    <ul class="memo" id="memo"></ul>
+    <div class="mesi" id="memo"></div>
     <button class="next" data-goto="quote-squadre">Avanti: Squadre ›</button>
   </section>
 
   <section class="page" id="quote-squadre" hidden>
     <h2>Quote per squadra</h2>
     <p class="muted" style="margin:0 0 6px">Dal foglio Tesserati, senza i ritirati (“ZZ Hanno Smesso”). Le prime squadre pagano entro il 31/01/2027; junior e non agonistiche hanno quasi tutte già pagato la quota o la prima rata.</p>
-    <table class="tbl cards stats"><thead><tr><th>Squadra</th><th class="r">Giocatori</th><th class="r">Hanno pagato</th><th class="r">Devono pagare</th><th class="r">Indecisi</th><th class="r">Quota 0</th><th class="r">Seconde rate</th></tr></thead><tbody id="tb_squadre"></tbody></table>
+    <div class="squadre" id="schede_squadre"></div>
     <button class="next" data-goto="controllo">Avanti: Controllo ›</button>
   </section>
 
@@ -223,6 +250,23 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
     <p class="muted">Quote attese in Guadagni contro i riepiloghi “Da Pagare” in fondo a Tesserati, e contro il conto fatto riga per riga (quote non ancora pagate).</p>
     <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Guadagni</th><th class="r">Riepilogo Tesserati</th><th class="r">Righe Tesserati</th><th>Esito</th></tr></thead><tbody id="tb_controllo"></tbody></table>
     <p class="muted" style="margin:10px 0 0">All Inclusive (<span class="num" data-draw="c_ai">—</span>) e U20 (<span class="num" data-draw="c_u20">—</span>) nei riepiloghi non hanno una riga propria in Guadagni.</p>
+    <button class="next" data-goto="andamento">Avanti: Andamento ›</button>
+  </section>
+
+  <section class="page" id="andamento" hidden>
+    <h2>Andamento previsto fino a luglio 2027</h2>
+    <p class="muted" style="margin:2px 0 10px">Soldi in cassa a fine mese: liquidità di oggi, meno i pagamenti del mese, più le entrate attese.</p>
+    <div class="legend"><span><i style="background:var(--c0)"></i>Pessimistica (gli indecisi non pagano)</span><span><i style="background:var(--c1)"></i>Ottimistica (pagano anche gli indecisi)</span></div>
+    <div class="chart" id="grafico"></div>
+    <div class="endvals">
+      <span>Fine luglio, pessimistica: <b class="num" data-draw="lug_p">—</b></span>
+      <span>ottimistica: <b class="num" data-draw="lug_o">—</b></span>
+    </div>
+    <ul class="notes">
+      <li>Dopo luglio restano <b class="num" data-draw="dopo_luglio">—</b> di pagamenti (agosto–dicembre 2027, spese “sparse” e tesoretti senza data): togliendoli si arriva al tesoretto netto.</li>
+      <li>Le quote in Guadagni con data 31/1/2026 sono contate a gennaio 2027 (scadenza delle prime squadre); nella stima ottimistica anche gli indecisi pagano a gennaio.</li>
+      <li>Le entrate senza data (stagione europea, CIU, rimborsi FIGeST) sono messe a luglio; i pagamenti 2025/2026 senza scadenza sono messi a novembre.</li>
+    </ul>
     <button class="next" data-goto="riepilogo">‹ Torna al riepilogo</button>
   </section>
 </div>
@@ -517,56 +561,72 @@ function disegnaTutto(dati) {
   tabellaGruppo('tb_figest', 'Rimborsi FIGeST');
   tabellaGruppo('tb_altre', 'Altre entrate');
 
-  // --- Pagamenti futuri, raggruppati per sezione ---
+  // --- Pagamenti futuri: un riquadro per mese, ognuno col suo colore ---
+  // COLORI_MESI: elenco di colori usati a turno; % (resto della divisione) fa ricominciare dall'inizio
+  const COLORI_MESI = ['#60a5fa', '#a78bfa', '#f472b6', '#fb923c', '#facc15', '#4ade80', '#2dd4bf', '#38bdf8', '#c084fc', '#f87171', '#a3e635', '#fbbf24'];
   const nomi = { 'Pagamenti rimasti da anno 2025/2026': 'Rimasti dal 2025/2026', 'Ottobre +': 'Ottobre 2027 e oltre', 'Sparsi': 'Sparsi (senza mese)', 'Tesoretti': 'Tesoretti (a occasione)' };
-  const tbP = document.getElementById('tb_pagamenti'); tbP.replaceChildren();
-  let ultima = null;
-  for (const p of pagamenti) {
-    if (p.pagato || p.promemoria) continue;
-    if (p.sezione !== ultima) {
-      ultima = p.sezione;
-      const tr = document.createElement('tr'); tr.className = 'grp';
-      const td = document.createElement('td'); td.colSpan = 3;
-      td.appendChild(document.createTextNode(nomi[p.sezione] || p.sezione || ''));
-      const tot = mesi.find((x) => x.sezione === p.sezione);
-      if (tot) { const s = document.createElement('span'); s.className = 'num'; s.textContent = euroFmt(tot.totale); td.appendChild(s); }
-      tr.appendChild(td); tbP.appendChild(tr);
+  // div(classe, testo): crea un elemento <div> con una classe e (se c'è) un testo
+  const div = (cls, testo) => { const d = document.createElement('div'); d.className = cls; if (testo != null) d.textContent = testo; return d; };
+  const boxP = document.getElementById('mesi_pagamenti'); boxP.replaceChildren();
+  const sezioni = [];   // elenco dei mesi nell'ordine del foglio
+  for (const p of pagamenti) if (!p.pagato && !p.promemoria && !sezioni.includes(p.sezione)) sezioni.push(p.sezione);
+  sezioni.forEach((sez, i) => {
+    const voci = pagamenti.filter((p) => p.sezione === sez && !p.pagato && !p.promemoria);
+    const box = div('mese'); box.style.setProperty('--mc', COLORI_MESI[i % COLORI_MESI.length]);
+    const testa = div('mese-testa');
+    const titolo = document.createElement('b'); titolo.textContent = nomi[sez] || sez || '';
+    const n = document.createElement('small'); n.textContent = voci.length + (voci.length === 1 ? ' voce' : ' voci'); titolo.appendChild(n);
+    const tot = mesi.find((x) => x.sezione === sez);
+    testa.append(titolo, div('tot', tot ? euroFmt(tot.totale) : '—'));
+    box.appendChild(testa);
+    for (const p of voci) {
+      const r = div('voce');
+      r.append(div('v', p.voce), div('e', p.euro == null ? 'da definire' : euroFmt(p.euro)));
+      if (p.scadenza) r.appendChild(div('s', 'Scadenza: ' + p.scadenza));
+      box.appendChild(r);
     }
-    const tr = document.createElement('tr');
-    cella(tr, p.voce, 'c-main');
-    cella(tr, p.euro == null ? 'da definire' : euroFmt(p.euro), 'c-amt r num');
-    cella(tr, p.scadenza || '—', 'c-sub', 'Scadenza:');
-    tbP.appendChild(tr);
-  }
+    boxP.appendChild(box);
+  });
 
-  // --- Promemoria anticipi (new Map() = elenco chiave → valori, qui mese → voci) ---
-  const ul = document.getElementById('memo'); ul.replaceChildren();
-  const per = new Map();
+  // --- Promemoria anticipi: un riquadro per mese, le voci come "etichette" ---
+  const boxA = document.getElementById('memo'); boxA.replaceChildren();
+  const per = new Map();   // new Map() = elenco chiave → valori, qui mese → voci
   for (const p of pagamenti.filter((x) => x.promemoria)) {
     if (!per.has(p.sezione)) per.set(p.sezione, []);
     per.get(p.sezione).push(p.voce);
   }
-  for (const [mese, voci] of per) {
-    const li = document.createElement('li');
-    const bb = document.createElement('b'); bb.textContent = mese === 'Sparsi' ? 'Quando capita' : mese;
-    const s = document.createElement('span'); s.textContent = voci.join(' · ');   // join unisce le voci con " · "
-    li.append(bb, s); ul.appendChild(li);
-  }
+  [...per].forEach(([mese, voci], i) => {
+    const box = div('mese'); box.style.setProperty('--mc', COLORI_MESI[i % COLORI_MESI.length]);
+    const testa = div('mese-testa');
+    const titolo = document.createElement('b'); titolo.textContent = mese === 'Sparsi' ? 'Quando capita' : mese;
+    testa.append(titolo, div('tot', voci.length + (voci.length === 1 ? ' anticipo' : ' anticipi')));
+    const chips = div('chips');
+    voci.forEach((v) => { const c = document.createElement('span'); c.className = 'chip'; c.textContent = v; chips.appendChild(c); });
+    box.append(testa, chips);
+    boxA.appendChild(box);
+  });
 
-  // --- Quote per squadra ---
-  const tbS = document.getElementById('tb_squadre'); tbS.replaceChildren();
-  for (const q of squadre) {
-    const tr = document.createElement('tr');
-    const td = cella(tr, q.squadra, 'c-main');
-    if (q.prima_squadra) etichetta(td, 'entro 31/01/2027');
-    cella(tr, numFmt(q.giocatori), 'c-stat r num', 'Giocatori:');
-    cella(tr, numFmt(q.pagato), 'c-stat r num', 'Pagato:');
-    cella(tr, numFmt(q.da_pagare), 'c-stat r num' + (q.da_pagare ? ' warn' : ''), 'Devono pagare:');
-    cella(tr, numFmt(q.indecisi), 'c-stat r num' + (q.indecisi ? ' warn' : ''), 'Indecisi:');
-    cella(tr, numFmt(q.quota_zero), 'c-stat r num', 'Quota 0:');
-    cella(tr, euroFmt(q.seconde_rate), 'c-stat r num', 'Seconde rate:');
-    tbS.appendChild(tr);
-  }
+  // --- Quote per squadra: una scheda colorata per squadra, con barra di chi ha pagato ---
+  const COLORI_SQUADRE = ['#60a5fa', '#f472b6', '#a78bfa', '#fb923c', '#4ade80', '#facc15', '#2dd4bf', '#38bdf8', '#f87171', '#c084fc', '#a3e635', '#fbbf24'];
+  const boxS = document.getElementById('schede_squadre'); boxS.replaceChildren();
+  squadre.forEach((q, i) => {
+    const sc = div('sq'); sc.style.setProperty('--sc', COLORI_SQUADRE[i % COLORI_SQUADRE.length]);
+    const h = document.createElement('h3'); h.textContent = q.squadra;
+    const sub = div('sub', q.prima_squadra ? 'Quote entro il 31/01/2027' : '');
+    // barra: percentuale di chi ha pagato sul totale dei giocatori
+    const barra = div('barra'); const pieno = document.createElement('i');
+    pieno.style.width = (q.giocatori ? Math.round(q.pagato / q.giocatori * 100) : 0) + '%'; barra.appendChild(pieno);
+    const dl = document.createElement('dl');
+    const riga = (et, val, cls) => { const dt = document.createElement('dt'); dt.textContent = et; const dd = document.createElement('dd'); dd.textContent = val; if (cls) dd.className = cls; dl.append(dt, dd); };
+    riga('Giocatori', numFmt(q.giocatori));
+    riga('Hanno pagato', numFmt(q.pagato));
+    riga('Devono pagare', numFmt(q.da_pagare), q.da_pagare ? 'warn' : '');
+    riga('Indecisi', numFmt(q.indecisi), q.indecisi ? 'warn' : '');
+    riga('Quota 0', numFmt(q.quota_zero));
+    riga('Seconde rate', euroFmt(q.seconde_rate));
+    sc.append(h, sub, barra, dl);
+    boxS.appendChild(sc);
+  });
 
   // --- Controllo ---
   const tbC = document.getElementById('tb_controllo'); tbC.replaceChildren();
@@ -652,9 +712,23 @@ window.addEventListener('resize', () => { clearTimeout(window._rz); window._rz =
    I dati sono già dentro la pagina (DATI), messi da build/genera.js.
    scrollIntoView = fa scorrere la pagina fino alle linguette.
    ===================================================================== */
+/* muoviIndicatore(): sposta la barretta colorata sotto la voce attiva del menu
+   e fa scorrere il menu (su telefono) perché la voce attiva resti visibile.
+   offsetLeft / offsetWidth = posizione e larghezza della voce; scrollTo = scorre il menu. */
+function muoviIndicatore() {
+  const t = document.querySelector('.tab[aria-selected="true"]');
+  const ind = document.querySelector('.ind');
+  if (!t || !ind) return;
+  ind.style.width = t.offsetWidth + 'px';
+  ind.style.transform = 'translateX(' + t.offsetLeft + 'px)';
+  const nav = document.querySelector('.tabs');
+  nav.scrollTo({ left: t.offsetLeft - (nav.clientWidth - t.offsetWidth) / 2, behavior: 'smooth' });
+}
+window.addEventListener('resize', muoviIndicatore);
 function apri(id, scorri) {
   document.querySelectorAll('.page').forEach((p) => { p.hidden = p.id !== id; });
   document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.goto === id)));
+  muoviIndicatore();
   if (id === 'andamento') disegnaGrafico();
   if (scorri) document.querySelector('.tabs').scrollIntoView({ block: 'start' });
 }
