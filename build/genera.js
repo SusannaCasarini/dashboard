@@ -117,8 +117,8 @@ function costruisci(nome, dati, titolo) {
     '--template-error', 'Password errata',
     '--template-toggle-show', 'Mostra password',
     '--template-toggle-hide', 'Nascondi password',
-    '--template-color-primary', '#1d2330',
-    '--template-color-secondary', '#f4f5f7'
+    '--template-color-primary', '#3b82f6',
+    '--template-color-secondary', '#0f1420'
   ], { cwd: RADICE, stdio: 'inherit' });
   fs.rmSync(tmp, { recursive: true, force: true });
 }

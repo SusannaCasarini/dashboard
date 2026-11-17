@@ -13,15 +13,17 @@
        Le "variabili" (--nome) sono colori riutilizzati in tutta la pagina:
        per cambiare un colore basta cambiarlo qui. */
     :root {
-      --sfondo: #f4f5f7;
-      --carta: #ffffff;
-      --testo: #1d2330;
-      --grigio: #6b7280;
-      --bordo: #e3e6eb;
-      --accento: #1f4fa8;
-      --verde: #1b7f45;   --verde-chiaro: #e3f4ea;
-      --giallo: #8a5a00;  --giallo-chiaro: #fdf1d6;
-      --rosso: #b42318;   --rosso-chiaro: #fde5e2;
+      color-scheme: dark;
+      --sfondo: #0f1420;
+      --carta: #182032;
+      --carta2: #1f2a40;
+      --testo: #e8ecf3;
+      --grigio: #9aa4b5;
+      --bordo: #2a3448;
+      --accento: #3b82f6;
+      --verde: #4ade80;   --verde-chiaro: rgba(74,222,128,.14);
+      --giallo: #fbbf24;  --giallo-chiaro: rgba(251,191,36,.14);
+      --rosso: #f87171;   --rosso-chiaro: rgba(248,113,113,.14);
     }
     * { box-sizing: border-box; }
     body {
@@ -40,15 +42,17 @@
     .comandi { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
     select {
       font-size: 17px; min-height: 48px; padding: 0 12px; border-radius: 10px;
-      border: 1px solid var(--bordo); background: var(--carta); color: var(--testo);
+      border: 2px solid var(--accento); background: var(--carta2); color: var(--testo); font-weight: 600;
       flex: 1 1 260px;
     }
     .filtro {
       display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px;
-      background: var(--carta); border: 1px solid var(--bordo); border-radius: 10px;
-      font-size: 15px; cursor: pointer; user-select: none;
+      background: var(--carta2); border: 1px solid #3a4763; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer; user-select: none;
     }
-    .filtro input { width: 20px; height: 20px; }
+    .filtro input { width: 20px; height: 20px; accent-color: var(--accento); }
+    .filtro:has(input:checked) { border-color: var(--accento); background: rgba(59,130,246,.15); }
+    select:focus, .filtro:focus-within { outline: 3px solid rgba(59,130,246,.35); }
 
     /* Contatori: griglia 2 colonne su telefono, 5 su schermo largo */
     .contatori { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
@@ -57,7 +61,8 @@
     .contatore .numero { font-size: 28px; font-weight: 700; }
     .contatore .etichetta { font-size: 14px; color: var(--grigio); }
     .contatore.verde { border-left-color: var(--verde); }
-    .contatore.giallo { border-left-color: #d99a00; }
+    .contatore.verde .numero { color: var(--verde); } .contatore.giallo .numero { color: var(--giallo); } .contatore.rosso .numero { color: var(--rosso); }
+    .contatore.giallo { border-left-color: var(--giallo); }
     .contatore.rosso { border-left-color: var(--rosso); }
 
     /* Schede giocatori: 1 colonna su telefono, 2-3 su schermi più larghi */
@@ -65,6 +70,8 @@
     @media (min-width: 700px) { .giocatori { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 1000px) { .giocatori { grid-template-columns: repeat(3, 1fr); } }
     .giocatore { background: var(--carta); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--bordo); }
+    .giocatore .nome { color: #fff; }
+    .giocatore .riga + .riga { border-top: 1px solid var(--bordo); }
     .giocatore .nome { font-weight: 700; font-size: 17px; margin-bottom: 8px; }
     .giocatore .nome small { font-weight: 400; color: var(--grigio); font-size: 13px; margin-left: 6px; }
     .riga { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: 15px; }
