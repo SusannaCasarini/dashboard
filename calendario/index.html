@@ -106,20 +106,20 @@
 <div class="contenitore">
   <a class="torna" href="../">← Dashboard BFD</a>
   <h1>Calendario <em>Shout</em> 2027</h1>
-  <div class="sotto">Impegni del weekend da gennaio a settembre · aggiornato al 17/11/2026</div>
+  <div class="sotto">Impegni da gennaio a settembre · aggiornato al 17/11/2026</div>
 
   <div id="prossimo"></div>
 
   <div class="comandi">
     <div class="filtri" id="filtri"></div>
     <div class="vista" role="group" aria-label="Vista">
-      <button data-vista="mesi" aria-pressed="true">Mesi</button>
-      <button data-vista="elenco" aria-pressed="false">Elenco</button>
+      <button data-vista="elenco" aria-pressed="true">Elenco</button>
+      <button data-vista="mesi" aria-pressed="false">Calendario</button>
     </div>
   </div>
 
-  <div id="mesi" class="mesi"></div>
-  <div id="elenco" class="elenco" hidden></div>
+  <div id="elenco" class="elenco"></div>
+  <div id="mesi" class="mesi" hidden></div>
 
   <div class="piede">
     <span>Le date tratteggiate sono da confermare.</span>
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-  const EVENTI = [{"titolo":"Tryouts Shout","tipo":"shout","inizio":"2027-01-23","fine":"2027-01-24","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-01-30","fine":"2027-01-30","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-02-13","fine":"2027-02-14","daConfermare":false},{"titolo":"Coppa Shout","tipo":"evento","inizio":"2027-02-20","fine":"2027-02-21","daConfermare":true},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-02-27","fine":"2027-02-28","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-03-13","fine":"2027-03-14","daConfermare":false},{"titolo":"Pasqua e Pasquetta","tipo":"festa","inizio":"2027-03-28","fine":"2027-03-29","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-04-03","fine":"2027-04-04","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-10","fine":"2027-04-10","daConfermare":false},{"titolo":"Test Match","tipo":"nazionale","inizio":"2027-04-17","fine":"2027-04-18","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-24","fine":"2027-04-24","daConfermare":false},{"titolo":"Grenoble","tipo":"evento","inizio":"2027-05-01","fine":"2027-05-02","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-05-15","fine":"2027-05-16","daConfermare":true},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-05-29","fine":"2027-05-29","daConfermare":false},{"titolo":"Elite Invite","tipo":"evento","inizio":"2027-06-03","fine":"2027-06-06","daConfermare":false},{"titolo":"Finali CIU","tipo":"evento","inizio":"2027-06-12","fine":"2027-06-13","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-19","fine":"2027-06-20","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-26","fine":"2027-06-27","daConfermare":false},{"titolo":"EUC · Vichy","tipo":"nazionale","inizio":"2027-07-01","fine":"2027-07-10","daConfermare":false},{"daConfermare":false,"titolo":"Raduno Shout","tipo":"shout","inizio":"2027-09-11","fine":"2027-09-12"},{"daConfermare":false,"titolo":"Champions","tipo":"evento","inizio":"2027-09-24","fine":"2027-09-26"}];
+  const EVENTI = [{"daConfermare":false,"titolo":"Inizio allenamenti","tipo":"shout","inizio":"2027-01-11","fine":"2027-01-11"},{"titolo":"Tryouts Shout","tipo":"shout","inizio":"2027-01-23","fine":"2027-01-24","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-01-30","fine":"2027-01-30","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-02-13","fine":"2027-02-14","daConfermare":false},{"titolo":"Coppa Shout","tipo":"evento","inizio":"2027-02-20","fine":"2027-02-21","daConfermare":true},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-02-27","fine":"2027-02-28","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-03-13","fine":"2027-03-14","daConfermare":false},{"titolo":"Pasqua e Pasquetta","tipo":"festa","inizio":"2027-03-28","fine":"2027-03-29","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-04-03","fine":"2027-04-04","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-10","fine":"2027-04-10","daConfermare":false},{"titolo":"Test Match","tipo":"nazionale","inizio":"2027-04-17","fine":"2027-04-18","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-24","fine":"2027-04-24","daConfermare":false},{"titolo":"Grenoble","tipo":"evento","inizio":"2027-05-01","fine":"2027-05-02","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-05-15","fine":"2027-05-16","daConfermare":true},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-05-29","fine":"2027-05-29","daConfermare":false},{"titolo":"Elite Invite","tipo":"evento","inizio":"2027-06-03","fine":"2027-06-06","daConfermare":false},{"titolo":"Finali CIU","tipo":"evento","inizio":"2027-06-12","fine":"2027-06-13","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-19","fine":"2027-06-20","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-26","fine":"2027-06-27","daConfermare":false},{"titolo":"EUC · Vichy","tipo":"nazionale","inizio":"2027-07-01","fine":"2027-07-10","daConfermare":false},{"daConfermare":false,"titolo":"Raduno Shout","tipo":"shout","inizio":"2027-09-11","fine":"2027-09-12"},{"daConfermare":false,"titolo":"Champions","tipo":"evento","inizio":"2027-09-24","fine":"2027-09-26"}];
   const TIPI = {
     nazionale: { nome: 'Nazionale', c: 'var(--naz)', bg: 'var(--naz-bg)' },
     shout:     { nome: 'Shout',     c: 'var(--shout)', bg: 'var(--shout-bg)' },
@@ -162,7 +162,7 @@
     const giorni = e.inizio === e.fine ? GIORNI[a.getDay()] : `${GIORNI[a.getDay()]}–${GIORNI[data(e.fine).getDay()]}`;
     return `<li class="ev-riga${passato(e) ? ' passato' : ''}" style="--c:${t.c}">
       <span class="barra"></span>
-      <span class="quando"><b>${quando(e)}</b>${giorni}</span>
+      <span class="quando"><b>${e.inizio === e.fine ? `${a.getDate()} ${MESI[a.getMonth()].slice(0,3)}` : quando(e)}</b>${giorni}</span>
       <span><div class="cosa">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
       <div class="tipo">${t.nome}</div></span></li>`;
   }

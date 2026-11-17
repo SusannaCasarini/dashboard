@@ -106,20 +106,20 @@
 <div class="contenitore">
   <a class="torna" href="../">← Dashboard BFD</a>
   <h1>Calendario <em>Shout</em> 2027</h1>
-  <div class="sotto">Impegni del weekend da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
+  <div class="sotto">Impegni da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
 
   <div id="prossimo"></div>
 
   <div class="comandi">
     <div class="filtri" id="filtri"></div>
     <div class="vista" role="group" aria-label="Vista">
-      <button data-vista="mesi" aria-pressed="true">Mesi</button>
-      <button data-vista="elenco" aria-pressed="false">Elenco</button>
+      <button data-vista="elenco" aria-pressed="true">Elenco</button>
+      <button data-vista="mesi" aria-pressed="false">Calendario</button>
     </div>
   </div>
 
-  <div id="mesi" class="mesi"></div>
-  <div id="elenco" class="elenco" hidden></div>
+  <div id="elenco" class="elenco"></div>
+  <div id="mesi" class="mesi" hidden></div>
 
   <div class="piede">
     <span>Le date tratteggiate sono da confermare.</span>
@@ -162,7 +162,7 @@
     const giorni = e.inizio === e.fine ? GIORNI[a.getDay()] : `${GIORNI[a.getDay()]}–${GIORNI[data(e.fine).getDay()]}`;
     return `<li class="ev-riga${passato(e) ? ' passato' : ''}" style="--c:${t.c}">
       <span class="barra"></span>
-      <span class="quando"><b>${quando(e)}</b>${giorni}</span>
+      <span class="quando"><b>${e.inizio === e.fine ? `${a.getDate()} ${MESI[a.getMonth()].slice(0,3)}` : quando(e)}</b>${giorni}</span>
       <span><div class="cosa">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
       <div class="tipo">${t.nome}</div></span></li>`;
   }

@@ -14,7 +14,7 @@
  *   - "Pasqua"                          → festività (grigio)
  *   - tutto il resto (CIU, Coppa, Grenoble, Elite Invite…) → evento/torneo (giallo)
  *   - un "?" nel testo                  → "da confermare"
- * Gli impegni dopo luglio (non presenti nel foglio) sono nella lista EXTRA qui sotto.
+ * L'inizio allenamenti e gli impegni dopo luglio (non presenti nel foglio) sono nella lista EXTRA qui sotto.
  *
  * Funzioni di Node/JavaScript usate:
  * - require('fs'): legge (readFileSync) e scrive (writeFileSync) file.
@@ -86,6 +86,7 @@ for (const r of righe) {
 
 // Impegni non presenti nel foglio
 const EXTRA = [
+  { titolo: 'Inizio allenamenti', tipo: 'shout', inizio: '2027-01-11', fine: '2027-01-11' },
   { titolo: 'Raduno Shout', tipo: 'shout', inizio: '2027-09-11', fine: '2027-09-12' },
   { titolo: 'Champions', tipo: 'evento', inizio: '2027-09-24', fine: '2027-09-26' },
 ];
