@@ -1,0 +1,4 @@
+node_modules/
+# I dati dei fogli NON devono mai finire qui: il repository è pubblico
+dati/
+*.json.bak

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <!--
+    PAGINA DELLA DASHBOARD COACH (modello)
+    Ogni lunedì build/genera.js mette al posto di __DATI__ solo nomi e stati
+    (nessun importo), poi la pagina viene cifrata con password.
+  -->
+  <style>
+    /* ===== COLORI E STILE GENERALE =====
+       Le "variabili" (--nome) sono colori riutilizzati in tutta la pagina:
+       per cambiare un colore basta cambiarlo qui. */
+    :root {
+      --sfondo: #f4f5f7;
+      --carta: #ffffff;
+      --testo: #1d2330;
+      --grigio: #6b7280;
+      --bordo: #e3e6eb;
+      --accento: #1f4fa8;
+      --verde: #1b7f45;   --verde-chiaro: #e3f4ea;
+      --giallo: #8a5a00;  --giallo-chiaro: #fdf1d6;
+      --rosso: #b42318;   --rosso-chiaro: #fde5e2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      background: var(--sfondo);
+      color: var(--testo);
+    }
+    .contenitore { max-width: 1100px; margin: 0 auto; padding: 16px; }
+
+    header h1 { font-size: 22px; margin: 4px 0; }
+    .aggiornato { color: var(--grigio); font-size: 14px; margin-bottom: 16px; }
+
+    /* Barra con menu squadra e filtro */
+    .comandi { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+    select {
+      font-size: 17px; min-height: 48px; padding: 0 12px; border-radius: 10px;
+      border: 1px solid var(--bordo); background: var(--carta); color: var(--testo);
+      flex: 1 1 260px;
+    }
+    .filtro {
+      display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px;
+      background: var(--carta); border: 1px solid var(--bordo); border-radius: 10px;
+      font-size: 15px; cursor: pointer; user-select: none;
+    }
+    .filtro input { width: 20px; height: 20px; }
+
+    /* Contatori: griglia 2 colonne su telefono, 5 su schermo largo */
+    .contatori { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+    @media (min-width: 700px) { .contatori { grid-template-columns: repeat(5, 1fr); } }
+    .contatore { background: var(--carta); border-radius: 12px; padding: 12px; border-left: 5px solid var(--bordo); }
+    .contatore .numero { font-size: 28px; font-weight: 700; }
+    .contatore .etichetta { font-size: 14px; color: var(--grigio); }
+    .contatore.verde { border-left-color: var(--verde); }
+    .contatore.giallo { border-left-color: #d99a00; }
+    .contatore.rosso { border-left-color: var(--rosso); }
+
+    /* Schede giocatori: 1 colonna su telefono, 2-3 su schermi più larghi */
+    .giocatori { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 700px) { .giocatori { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1000px) { .giocatori { grid-template-columns: repeat(3, 1fr); } }
+    .giocatore { background: var(--carta); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--bordo); }
+    .giocatore .nome { font-weight: 700; font-size: 17px; margin-bottom: 8px; }
+    .giocatore .nome small { font-weight: 400; color: var(--grigio); font-size: 13px; margin-left: 6px; }
+    .riga { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: 15px; }
+    .riga .voce { color: var(--grigio); }
+
+    /* "Pillole" colorate: colore + icona + parola, così si capiscono anche senza distinguere i colori */
+    .pillola { padding: 3px 10px; border-radius: 999px; font-size: 14px; font-weight: 600; text-align: right; }
+    .pillola.verde { background: var(--verde-chiaro); color: var(--verde); }
+    .pillola.giallo { background: var(--giallo-chiaro); color: var(--giallo); }
+    .pillola.rosso { background: var(--rosso-chiaro); color: var(--rosso); }
+
+    .messaggio { text-align: center; color: var(--grigio); padding: 40px 10px; }
+    .errore { color: var(--rosso); }
+  </style>
+</head>
+<body>
+  <div class="contenitore">
+    <header>
+      <h1>Bologna Flying Disc – Situazione squadre</h1>
+      <div class="aggiornato" id="aggiornato"></div>
+    </header>
+
+    <div class="comandi">
+      <select id="sceltaSquadra" aria-label="Scegli la squadra"></select>
+      <label class="filtro">
+        <input type="checkbox" id="soloDaSistemare">
+        Solo chi ha qualcosa da sistemare
+      </label>
+    </div>
+
+    <div class="contatori" id="contatori"></div>
+    <div class="giocatori" id="giocatori">
+      <div class="messaggio">Sto leggendo i dati…</div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== LOGICA DELLA PAGINA ===== */
+
+    // Qui salviamo i dati arrivati da Codice.gs
+    let tutti = [];
+
+    // Icona per ogni livello di colore
+    const ICONE = { verde: '✓', giallo: '!', rosso: '✗' };
+
+    /*
+      datiArrivati(dati)
+      Salva i giocatori, scrive la data di aggiornamento, riempie il menu delle squadre e disegna.
+      - document.getElementById('x'): trova l'elemento della pagina con id="x".
+      - textContent: il testo dentro quell'elemento.
+    */
+    function datiArrivati(dati) {
+      tutti = dati.giocatori;
+      document.getElementById('aggiornato').textContent =
+        'Dati aggiornati al ' + dati.aggiornato + ' · ' + tutti.length + ' giocatori';
+      riempiMenu();
+      disegna();
+    }
+
+    /*
+      riempiMenu()
+      Costruisce il menu a tendina: prima le squadre Open/Women, poi le Mixed.
+      - map(g => g.squadra): da ogni giocatore prende solo la squadra.
+      - new Set(...): toglie i doppioni. [... ] lo ritrasforma in elenco.
+      - filter(Boolean): toglie i valori vuoti.
+      - sort(): mette in ordine alfabetico.
+      - document.createElement('option'): crea una nuova voce del menu.
+      - appendChild(x): aggiunge x dentro un altro elemento.
+    */
+    function riempiMenu() {
+      const menu = document.getElementById('sceltaSquadra');
+      const squadre = [...new Set(tutti.map(g => g.squadra))].filter(Boolean).sort();
+      const mixed = [...new Set(tutti.map(g => g.mixed))].filter(Boolean).sort();
+
+      aggiungiGruppo(menu, 'Open / Women', squadre, 'S:');
+      aggiungiGruppo(menu, 'Mixed', mixed, 'M:');
+
+      // Se nel link c'è già una squadra (es. ...#S:Shout) la riapro; location.hash = la parte dopo #
+      const salvata = decodeURIComponent(location.hash.slice(1));
+      if (salvata && [...menu.options].some(o => o.value === salvata)) menu.value = salvata;
+
+      // addEventListener('change', ...): quando cambi squadra, ridisegna e ricorda la scelta nel link
+      menu.addEventListener('change', () => {
+        location.hash = encodeURIComponent(menu.value);
+        disegna();
+      });
+      document.getElementById('soloDaSistemare').addEventListener('change', disegna);
+    }
+
+    // aggiungiGruppo: crea un gruppo di voci nel menu (optgroup = titolo grigio non selezionabile)
+    function aggiungiGruppo(menu, titolo, nomi, prefisso) {
+      if (!nomi.length) return;
+      const gruppo = document.createElement('optgroup');
+      gruppo.label = titolo;
+      nomi.forEach(n => {
+        const voce = document.createElement('option');
+        voce.value = prefisso + n;   // il prefisso distingue squadra normale (S:) da mixed (M:)
+        voce.textContent = n;
+        gruppo.appendChild(voce);
+      });
+      menu.appendChild(gruppo);
+    }
+
+    /*
+      daSistemare(g)
+      Vero se il giocatore ha almeno una voce non verde (quota, cartaceo, Golee o Advanced).
+    */
+    function daSistemare(g) {
+      return g.quota.livello !== 'verde' || !g.cartaceo || !g.golee || g.advanced.livello !== 'verde';
+    }
+
+    /*
+      disegna()
+      Prende la squadra scelta, calcola i contatori e crea una scheda per ogni giocatore.
+      - startsWith('M:'): vero se il testo inizia con "M:".
+      - slice(2): toglie i primi 2 caratteri (il prefisso).
+      - localeCompare: confronta due testi in ordine alfabetico italiano.
+      - innerHTML = '': svuota l'elemento prima di ridisegnarlo.
+    */
+    function disegna() {
+      const scelta = document.getElementById('sceltaSquadra').value;
+      const eMixed = scelta.startsWith('M:');
+      const nomeSquadra = scelta.slice(2);
+
+      let lista = tutti.filter(g => eMixed ? g.mixed === nomeSquadra : g.squadra === nomeSquadra);
+      lista.sort((a, b) => a.cognome.localeCompare(b.cognome, 'it'));
+
+      // Contatori calcolati su tutta la squadra (prima del filtro)
+      const conta = test => lista.filter(test).length;
+      disegnaContatori([
+        { n: conta(g => g.quota.testo === 'Pagata'), testo: 'Quote pagate', livello: 'verde' },
+        { n: conta(g => g.quota.testo.startsWith('Da pagare') || g.quota.testo === 'Prima rata pagata'), testo: 'Quote da completare', livello: 'giallo' },
+        { n: conta(g => g.quota.testo === 'Indeciso'), testo: 'Indecisi', livello: 'giallo' },
+        { n: conta(g => !g.cartaceo || !g.golee), testo: 'Certificati da sistemare', livello: 'rosso' },
+        { n: conta(g => g.advanced.livello !== 'verde'), testo: 'Advanced da sistemare', livello: 'rosso' }
+      ]);
+
+      if (document.getElementById('soloDaSistemare').checked) lista = lista.filter(daSistemare);
+
+      const area = document.getElementById('giocatori');
+      area.innerHTML = '';
+      if (!lista.length) {
+        area.innerHTML = '<div class="messaggio">Nessun giocatore da mostrare 🎉</div>';
+        return;
+      }
+      lista.forEach(g => area.appendChild(schedaGiocatore(g, eMixed)));
+    }
+
+    // disegnaContatori: crea i riquadri con i numeri in cima
+    function disegnaContatori(voci) {
+      const area = document.getElementById('contatori');
+      area.innerHTML = '';
+      voci.forEach(v => {
+        const box = document.createElement('div');
+        box.className = 'contatore ' + (v.n === 0 ? 'verde' : v.livello);
+        box.innerHTML = '<div class="numero"></div><div class="etichetta"></div>';
+        box.querySelector('.numero').textContent = v.n;
+        box.querySelector('.etichetta').textContent = v.testo;
+        area.appendChild(box);
+      });
+    }
+
+    /*
+      schedaGiocatore(g, eMixed)
+      Crea la scheda di un giocatore con le 4 righe (Quota, Cartaceo, Golee, Advanced).
+      Uso textContent e non innerHTML per i nomi: così un nome strano non può "rompere" la pagina.
+      - querySelector('.x'): trova dentro la scheda il primo elemento con class="x".
+    */
+    function schedaGiocatore(g, eMixed) {
+      const scheda = document.createElement('div');
+      scheda.className = 'giocatore';
+
+      const nome = document.createElement('div');
+      nome.className = 'nome';
+      nome.textContent = g.cognome + ' ' + g.nome;
+      if (eMixed) { // nelle squadre mixed mostro anche la squadra di club
+        const sq = document.createElement('small');
+        sq.textContent = g.squadra;
+        nome.appendChild(sq);
+      }
+      scheda.appendChild(nome);
+
+      scheda.appendChild(riga('Quota', g.quota.testo, g.quota.livello));
+      scheda.appendChild(riga('Certificato cartaceo', g.cartaceo ? 'Consegnato' : 'Manca', g.cartaceo ? 'verde' : 'rosso'));
+      scheda.appendChild(riga('Certificato su Golee', g.golee ? 'Caricato' : 'Manca', g.golee ? 'verde' : 'rosso'));
+      scheda.appendChild(riga('Advanced', g.advanced.testo, g.advanced.livello));
+      return scheda;
+    }
+
+    // riga: una riga "voce ........ pillola colorata"
+    function riga(voce, testo, livello) {
+      const r = document.createElement('div');
+      r.className = 'riga';
+      r.innerHTML = '<span class="voce"></span><span class="pillola"></span>';
+      r.querySelector('.voce').textContent = voce;
+      const p = r.querySelector('.pillola');
+      p.classList.add(livello);
+      p.textContent = ICONE[livello] + ' ' + testo;
+      return r;
+    }
+
+    /*
+      Stato di quota e Advanced calcolati oggi, sul telefono di chi guarda:
+      così "Scaduto" e "In scadenza" sono giusti ogni giorno, non solo il lunedì.
+      new Date(anno, mese-1, giorno) crea una data; getTime() la trasforma in millisecondi.
+    */
+    function leggiData(t) {
+      const p = String(t || '').trim().split('/');
+      if (p.length !== 3) return null;
+      const d = new Date(Number(p[2]), Number(p[1]) - 1, Number(p[0]));
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function due(n) { return String(n).padStart(2, '0'); }   // padStart: 5 → "05"
+    function statoAdvanced(testo, oggi) {
+      const s = leggiData(testo);
+      if (!s) return { testo: 'Mancante', livello: 'rosso' };
+      const giorni = Math.round((s - oggi) / 86400000);   // 86400000 ms = 1 giorno
+      const data = due(s.getDate()) + '/' + due(s.getMonth() + 1) + '/' + s.getFullYear();
+      if (giorni < 0) return { testo: 'Scaduto il ' + data, livello: 'rosso' };
+      if (giorni <= 30) return { testo: 'Scade il ' + data, livello: 'giallo' };
+      return { testo: 'Valido fino al ' + data, livello: 'verde' };
+    }
+    function statoQuota(codice, oggi) {
+      if (codice === 'indeciso') return { testo: 'Indeciso', livello: 'giallo' };
+      if (codice === 'pagata') return { testo: 'Pagata', livello: 'verde' };
+      if (codice === 'prima_rata') return { testo: 'Prima rata pagata', livello: 'giallo' };
+      if (codice === 'da_verificare') return { testo: 'Da verificare', livello: 'giallo' };
+      if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', livello: oggi <= new Date(2027, 0, 31) ? 'giallo' : 'rosso' };
+      return { testo: 'Da pagare', livello: 'rosso' };
+    }
+
+    // mostraErrore: se qualcosa va storto (es. foglio rinominato) lo scrive in pagina
+    function mostraErrore(err) {
+      document.getElementById('aggiornato').textContent = '';
+      document.getElementById('giocatori').innerHTML =
+        '<div class="messaggio errore">Non riesco a leggere i dati. Avvisa la segreteria.<br><small></small></div>';
+      document.querySelector('.errore small').textContent = err && err.message ? err.message : String(err);
+    }
+    // Avvio: i dati sono già dentro la pagina; trasformo i codici in testi e colori
+    const DATI = /*__DATI__*/null;
+    const OGGI = new Date(); OGGI.setHours(0, 0, 0, 0);
+    DATI.giocatori.forEach((g) => { g.quota = statoQuota(g.quota, OGGI); g.advanced = statoAdvanced(g.advanced, OGGI); });
+    datiArrivati(DATI);
+  </script>
+</body>
+</html>

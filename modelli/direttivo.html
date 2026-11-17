@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<!--
+  PAGINA DELLA DASHBOARD DIRETTIVO (modello)
+  Ogni lunedì build/genera.js mette al posto di __DATI__ il contenuto dei fogli,
+  poi la pagina viene cifrata con password. Qui sotto si fanno i conti e si disegna tutto.
+  d3 è una libreria gratuita per disegnare grafici: la carichiamo da internet (jsdelivr).
+-->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+/* ===== COLORI E STILE (le variabili --nome si cambiano qui una volta sola) ===== */
+:root {
+  --fg: #1d2330; --muted: #5f6673; --bg: #ffffff; --panel: #f5f6f8; --line: #e2e5ea;
+  --ok: #1b7f45; --bad: #b42318; --warn: #9a5b00;
+  --c0: #2b5ea7; --c1: #d0742a;           /* linea pessimistica / ottimistica */
+  --r: 10px;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
+.bfd { font-size: 15px; line-height: 1.45; max-width: 1100px; margin: 0 auto; padding: 16px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.muted { color: var(--muted); font-size: 14px; }
+.ok { color: var(--ok); font-weight: 600; } .bad { color: var(--bad); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 5vw, 34px); line-height: 1.15; margin: 0 0 8px; }
+h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
+
+/* Schermata PIN */
+.pin { max-width: 360px; margin: 12vh auto 0; text-align: center; }
+.pin input { width: 100%; font-size: 22px; text-align: center; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); margin: 12px 0; letter-spacing: 4px; }
+.btn { min-height: 44px; padding: 8px 16px; font: inherit; font-size: 15px; font-weight: 600; border: 1px solid var(--fg); border-radius: var(--r); background: var(--bg); color: var(--fg); cursor: pointer; }
+.btn.pieno { background: var(--fg); color: var(--bg); width: 100%; }
+.btn:disabled { opacity: .6; cursor: progress; }
+.errore { color: var(--bad); min-height: 22px; }
+
+/* Intestazione */
+.stamp { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 12px; }
+.stamp .when { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; font-size: 16px; font-weight: 600; }
+
+/* Linguette delle pagine */
+.tabs { position: sticky; top: 0; z-index: 3; background: var(--bg); display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 10px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
+.tab { min-height: 44px; padding: 8px 16px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 600; }
+.next { display: block; margin: 22px 0 0 auto; min-height: 44px; padding: 8px 18px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); color: var(--fg); cursor: pointer; }
+.lead { font-size: 16px; margin: 0 0 18px; max-width: 70ch; }
+
+/* Numeri grandi */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kpi, .group { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; min-width: 0; }
+.kpi h3, .group h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.big { font-family: var(--serif); font-size: clamp(22px, 2.6vw, 30px); line-height: 1.15; display: block; }
+.mid { font-family: var(--serif); font-size: clamp(17px, 2vw, 21px); display: block; margin-top: 2px; }
+.kpi p, .group p { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.group h3 { color: var(--fg); font-size: 15px; }
+.group .big { font-size: 24px; margin: 2px 0 8px; }
+
+/* Grafico */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 6px; font-size: 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; }
+.chart { position: relative; width: 100%; min-height: 280px; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart .axis text { fill: var(--muted); font-size: 13px; font-family: var(--sans); }
+.chart .grid line { stroke: var(--line); }
+.tip { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,.12); border-radius: var(--r); padding: 8px 10px; font-size: 14px; min-width: 170px; z-index: 2; }
+.tip b { display: block; margin-bottom: 4px; }
+.tip div { display: flex; justify-content: space-between; gap: 12px; }
+.tip .lab { color: var(--muted); }
+.endvals { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 0; font-size: 15px; }
+.notes { margin: 10px 0 0; padding-left: 18px; font-size: 14px; color: var(--muted); }
+
+/* Tabelle */
+.tbl { width: 100%; border-collapse: collapse; font-size: 15px; }
+.tbl th { text-align: left; font-size: 14px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.tbl td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl .r { text-align: right; }
+.tbl tr.grp td { background: var(--panel); font-weight: 600; padding-top: 12px; }
+.tbl tr.grp td .num { float: right; }
+.group .tbl { font-size: 14px; } .group .tbl td { padding: 6px 0; } .group .tbl th { padding: 4px 0; }
+.tag { display: inline-block; font-size: 13px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; margin-left: 6px; }
+.tag.warn { border-color: var(--warn); color: var(--warn); }
+.memo { list-style: none; margin: 0; padding: 0; }
+.memo li { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.check { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
+
+/* Tablet */
+@media (max-width: 899px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .groups { grid-template-columns: 1fr; }
+}
+/* Telefono: linguette in griglia, tabelle trasformate in schede */
+@media (max-width: 599px) {
+  .tabs { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tab { padding: 8px 2px; font-size: 14px; border-radius: var(--r); }
+  .next { width: 100%; }
+  .kpis { gap: 8px; } .kpi { padding: 12px; } .big { font-size: 21px; } .mid { font-size: 16px; }
+  .memo li { grid-template-columns: 1fr; gap: 2px; }
+  .tbl.cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tbl.cards, .tbl.cards tbody { display: block; }
+  .tbl.cards tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .tbl.cards td { display: block; border: 0; padding: 0; }
+  .tbl.cards td.c-main { grid-column: 1; grid-row: 1; font-weight: 600; }
+  .tbl.cards td.c-amt { grid-column: 2; grid-row: 1; text-align: right; }
+  .tbl.cards td.c-sub { grid-column: 1 / -1; text-align: left; color: var(--muted); font-size: 14px; }
+  .tbl.cards td.c-stat { font-size: 14px; }
+  .tbl.cards td[data-label]::before { content: attr(data-label) " "; color: var(--muted); }
+  .tbl.cards tr.grp { display: block; padding: 12px 8px; }
+  .tbl.cards tr.grp td { display: block; background: none; padding: 0; }
+  .tbl.stats tr { grid-template-columns: 1fr 1fr; }
+  .tbl.stats td.c-main { grid-column: 1 / -1; grid-row: 1; }
+  .tbl.stats td.r { text-align: left; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="bfd" id="bfd">
+  <h1>Bologna Flying Disc · Situazione economica 2026/2027</h1>
+  <div class="stamp">
+    <span class="when">Dati aggiornati al <span data-draw="foto">—</span></span>
+    <span class="muted">Dai fogli Saldo 2026/2027 e Quote 2026/2027, aggiornati ogni lunedì · saldo conto e PayPal al <span data-draw="saldo_al">—</span></span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Pagine della dashboard">
+    <button class="tab" role="tab" data-goto="riepilogo">Riepilogo</button>
+    <button class="tab" role="tab" data-goto="andamento">Andamento</button>
+    <button class="tab" role="tab" data-goto="da-incassare">Incassi</button>
+    <button class="tab" role="tab" data-goto="pagamenti-futuri">Pagamenti</button>
+    <button class="tab" role="tab" data-goto="promemoria">Anticipi</button>
+    <button class="tab" role="tab" data-goto="quote-squadre">Squadre</button>
+    <button class="tab" role="tab" data-goto="controllo">Controllo</button>
+  </nav>
+
+  <section class="page" id="riepilogo">
+    <p class="lead">A fine stagione, pagato tutto e incassato tutto, dovrebbero restare tra <b class="num" data-draw="pess">—</b> e <b class="num" data-draw="ott">—</b>. Da qui a luglio il punto più basso previsto è <b class="num" data-draw="min_pess">—</b>, a <span data-draw="min_mese">—</span>.</p>
+    <div class="kpis">
+      <div class="kpi"><h3>Liquidità oggi</h3><span class="big num" data-draw="liquidita">—</span>
+        <p>Conto <span class="num" data-draw="conto">—</span> + PayPal <span class="num" data-draw="paypal">—</span></p></div>
+      <div class="kpi"><h3>Da pagare</h3><span class="big num" data-draw="da_pagare">—</span>
+        <p><span data-draw="chk_pagare">—</span> Bilancio: <span class="num" data-draw="bil_pagamenti">—</span></p></div>
+      <div class="kpi"><h3>Da incassare</h3><span class="big num" data-draw="da_incassare">—</span>
+        <p><span data-draw="chk_incassare">—</span> Bilancio: <span class="num" data-draw="bil_guadagni">—</span></p></div>
+      <div class="kpi"><h3>Tesoretto netto</h3><span class="big num" data-draw="pess">—</span>
+        <span class="mid num">fino a <span data-draw="ott">—</span></span>
+        <p>Se pagano anche i <span data-draw="n_indecisi">—</span> indecisi (+<span class="num" data-draw="euro_indecisi">—</span>)</p></div>
+    </div>
+    <button class="next" data-goto="andamento">Avanti: Andamento ›</button>
+  </section>
+
+  <section class="page" id="andamento" hidden>
+    <h2>Andamento previsto fino a luglio 2027</h2>
+    <p class="muted" style="margin:2px 0 10px">Soldi in cassa a fine mese: liquidità di oggi, meno i pagamenti del mese, più le entrate attese.</p>
+    <div class="legend"><span><i style="background:var(--c0)"></i>Pessimistica (gli indecisi non pagano)</span><span><i style="background:var(--c1)"></i>Ottimistica (pagano anche gli indecisi)</span></div>
+    <div class="chart" id="grafico"></div>
+    <div class="endvals">
+      <span>Fine luglio, pessimistica: <b class="num" data-draw="lug_p">—</b></span>
+      <span>ottimistica: <b class="num" data-draw="lug_o">—</b></span>
+    </div>
+    <ul class="notes">
+      <li>Dopo luglio restano <b class="num" data-draw="dopo_luglio">—</b> di pagamenti (agosto–dicembre 2027, spese “sparse” e tesoretti senza data): togliendoli si arriva al tesoretto netto.</li>
+      <li>Le quote in Guadagni con data 31/1/2026 sono contate a gennaio 2027 (scadenza delle prime squadre); nella stima ottimistica anche gli indecisi pagano a gennaio.</li>
+      <li>Le entrate senza data (stagione europea, CIU, rimborsi FIGeST) sono messe a luglio; i pagamenti 2025/2026 senza scadenza sono messi a novembre.</li>
+    </ul>
+    <button class="next" data-goto="da-incassare">Avanti: Incassi ›</button>
+  </section>
+
+  <section class="page" id="da-incassare" hidden>
+    <h2>Da incassare</h2>
+    <div class="groups">
+      <div class="group"><h3>Quote per squadra</h3><span class="big num" data-draw="quote_tot">—</span>
+        <table class="tbl"><thead><tr><th>Voce</th><th class="r">Euro</th></tr></thead><tbody id="tb_quote"></tbody></table></div>
+      <div class="group"><h3>Rimborsi FIGeST (Prestiti CUSB)</h3><span class="big num" data-draw="figest_tot">—</span>
+        <table class="tbl"><thead><tr><th>Voce</th><th class="r">Euro</th></tr></thead><tbody id="tb_figest"></tbody></table>
+        <p>Anticipi di BFD che devono tornare. Altre <span data-draw="figest_senza">—</span> voci (raduni e tappe) sono ancora senza importo.</p></div>
+      <div class="group"><h3>Altre entrate</h3><span class="big num" data-draw="altre_tot">—</span>
+        <table class="tbl"><thead><tr><th>Voce</th><th class="r">Euro</th></tr></thead><tbody id="tb_altre"></tbody></table></div>
+    </div>
+    <button class="next" data-goto="pagamenti-futuri">Avanti: Pagamenti ›</button>
+  </section>
+
+  <section class="page" id="pagamenti-futuri" hidden>
+    <h2>Pagamenti futuri</h2>
+    <p class="muted">Solo quelli non ancora pagati, per mese. Da pagare in tutto: <b class="num" data-draw="da_pagare">—</b></p>
+    <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Importo</th><th>Scadenza</th></tr></thead><tbody id="tb_pagamenti"></tbody></table>
+    <button class="next" data-goto="promemoria">Avanti: Anticipi ›</button>
+  </section>
+
+  <section class="page" id="promemoria" hidden>
+    <h2>Promemoria anticipi</h2>
+    <p class="muted" style="margin:0 0 6px">Spese che BFD anticipa e che poi tornano indietro: nel foglio non hanno importo.</p>
+    <ul class="memo" id="memo"></ul>
+    <button class="next" data-goto="quote-squadre">Avanti: Squadre ›</button>
+  </section>
+
+  <section class="page" id="quote-squadre" hidden>
+    <h2>Quote per squadra</h2>
+    <p class="muted" style="margin:0 0 6px">Dal foglio Tesserati, senza i ritirati (“ZZ Hanno Smesso”). Le prime squadre pagano entro il 31/01/2027; junior e non agonistiche hanno quasi tutte già pagato la quota o la prima rata.</p>
+    <table class="tbl cards stats"><thead><tr><th>Squadra</th><th class="r">Giocatori</th><th class="r">Hanno pagato</th><th class="r">Devono pagare</th><th class="r">Indecisi</th><th class="r">Quota 0</th><th class="r">Seconde rate</th></tr></thead><tbody id="tb_squadre"></tbody></table>
+    <button class="next" data-goto="controllo">Avanti: Controllo ›</button>
+  </section>
+
+  <section class="page check" id="controllo" hidden>
+    <h2>Controllo</h2>
+    <p class="muted">Quote attese in Guadagni contro i riepiloghi “Da Pagare” in fondo a Tesserati, e contro il conto fatto riga per riga (quote non ancora pagate).</p>
+    <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Guadagni</th><th class="r">Riepilogo Tesserati</th><th class="r">Righe Tesserati</th><th>Esito</th></tr></thead><tbody id="tb_controllo"></tbody></table>
+    <p class="muted" style="margin:10px 0 0">All Inclusive (<span class="num" data-draw="c_ai">—</span>) e U20 (<span class="num" data-draw="c_u20">—</span>) nei riepiloghi non hanno una riga propria in Guadagni.</p>
+    <button class="next" data-goto="riepilogo">‹ Torna al riepilogo</button>
+  </section>
+</div>
+
+<script>
+/* =====================================================================
+   1) FORMATI
+   d3.formatLocale(...) crea un "formattatore" all'italiana: virgola per i decimali,
+   punto per le migliaia, simbolo €. format('$,.2f') = valuta con 2 decimali.
+   isNaN(x) = vero se x non è un numero.
+   ===================================================================== */
+const it = d3.formatLocale({ decimal: ',', thousands: '.', grouping: [3], currency: ['€ ', ''], minus: '−' });
+const euroFmt = (v) => (v == null || isNaN(v)) ? '—' : it.format('$,.2f')(v);
+const euroK = (v) => it.format('$,.0f')(Math.round(v / 1000)) + 'k';   // es. € 28k per l'asse del grafico
+const numFmt = (v) => (v == null || isNaN(v)) ? '—' : it.format(',d')(v);
+const r2 = (v) => Math.round(v * 100) / 100;                          // arrotonda ai centesimi
+
+/* euro("€ 1.234,56") → 1234.56. replace(...) toglie €, spazi e punti e cambia la virgola in punto;
+   Number(...) trasforma il testo in numero; Number.isFinite controlla che sia un numero valido. */
+function euro(s) {
+  const t = String(s ?? '').replace(/[€\s ]/g, '').replace(/\./g, '').replace(',', '.');
+  if (t === '') return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+const pieno = (c) => String(c ?? '').trim() !== '';                    // vero se la cella non è vuota
+const vero = (c) => /^(TRUE|VERO)$/i.test(String(c ?? '').trim());     // casella spuntata?
+
+/* =====================================================================
+   2) LETTURA DEI FOGLI (da tabella di testo a righe con numeri)
+   v è la tabella arrivata da Codice.gs: v[0] = riga 1 del foglio, v[0][0] = cella A1.
+   ===================================================================== */
+
+// Bilancio: riga 3 = Conto, PayPal, Pagamenti, Guadagni, Totale; riga 4 = data
+function leggiBilancio(v) {
+  const r = v[2] || [], d = v[3] || [];
+  return { conto: euro(r[0]), paypal: euro(r[1]), pagamenti: euro(r[2]), guadagni: euro(r[3]), totale: euro(r[4]), saldo_al: String(d[0] ?? '').trim() };
+}
+
+/* Pagamenti: una riga per pagamento. Le righe con solo il nome (es. "Novembre") sono titoli di sezione.
+   push(...) aggiunge in fondo all'elenco; slice(1) = tutte le celle tranne la prima; some(...) = vero se almeno una è piena. */
+function leggiPagamenti(v) {
+  const rows = []; let sez = null, vuota = false;
+  for (let i = 4; i < v.length; i++) {
+    const r = v[i] || [], voce = String(r[0] ?? '').trim(), resto = r.slice(1).some(pieno);
+    if (!voce && !resto) { vuota = true; continue; }
+    if (voce && !resto) { sez = voce; vuota = false; continue; }
+    if (!voce) { vuota = false; continue; }
+    if (vuota && (sez === 'Sparsi' || sez === 'Tesoretti')) sez = 'Tesoretti';
+    vuota = false;
+    const note = String(r[4] ?? '').trim();
+    rows.push({ riga: i + 1, sezione: sez, voce, euro: euro(r[1]), scadenza: String(r[2] ?? '').trim(), pagato: vero(r[3]), promemoria: /da ricordare/i.test(note), note });
+  }
+  return rows;
+}
+
+// Guadagni: righe con importo da incassare, divise in Quote / Altre entrate / Rimborsi FIGeST
+function leggiGuadagni(v) {
+  const rows = []; let gruppo = 'Quote', vista = false;
+  for (let i = 1; i < v.length; i++) {
+    const r = v[i] || [], nome = String(r[0] ?? '').trim(), resto = r.slice(1).some(pieno);
+    if (!nome && !resto) { if (vista && gruppo === 'Quote') gruppo = 'Altre entrate'; continue; }
+    if (/^prestiti cusb$/i.test(nome)) { gruppo = 'Rimborsi FIGeST'; continue; }
+    if (!nome) continue;
+    if (pieno(r[4]) && !pieno(r[1])) continue;   // righe di GUADAGNO FINALE: solo traccia, non soldi da incassare
+    vista = true;
+    rows.push({ riga: i + 1, gruppo, nome, euro: euro(r[1]), data: String(r[2] ?? '').trim(), arrivato: String(r[3] ?? '').trim() });
+  }
+  return rows;
+}
+
+/* Tesserati (colonne C-K): r[0]=squadra, r[5]=seconda rata (H), r[6]=quota (I), r[7]=pagato (J).
+   Le righe senza squadra in fondo sono i riepiloghi "Da Pagare". startsWith('€') = il testo inizia con €. */
+function leggiTesserati(v) {
+  const rows = [];
+  for (let i = 1; i < v.length; i++) {
+    const r = v[i] || [], squadra = String(r[0] ?? '').trim();
+    if (squadra) {
+      const q = String(r[6] ?? '').trim();
+      rows.push({ tipo: 'giocatore', squadra, seconda: euro(r[5]) || 0, quota: q === '?' ? null : euro(q), indeciso: q === '?', pagato: vero(r[7]) });
+    } else {
+      const voce = String(r[5] ?? '').trim(), dp = String(r[6] ?? '').trim();
+      if (voce && dp.startsWith('€')) rows.push({ tipo: 'riepilogo', voce, da_pagare: euro(dp), pagati: euro(r[7]) });
+    }
+  }
+  return rows;
+}
+
+/* =====================================================================
+   3) CALCOLI (identici alla dashboard su Claude)
+   find(...) = primo elemento che soddisfa la condizione; filter(...) = tutti quelli che la soddisfano;
+   reduce((somma, x) => ..., 0) = somma su tutti gli elementi; includes(x) = vero se x è nell'elenco.
+   ===================================================================== */
+const PRIME = ['Cheetahs', 'Borealis', 'Shout', 'La Fotta'];
+
+// Conteggi per squadra (senza ritirati) e quota più frequente, usata per stimare gli indecisi
+function calcSquadre(tesserati) {
+  const out = [];
+  for (const g of tesserati) {
+    if (g.tipo !== 'giocatore' || g.squadra === 'ZZ Hanno Smesso') continue;
+    let s = out.find((x) => x.squadra === g.squadra);
+    if (!s) {
+      s = { squadra: g.squadra, prima_squadra: PRIME.includes(g.squadra), giocatori: 0, pagato: 0, da_pagare: 0, quota_zero: 0, indecisi: 0, quota_tipica: 0, euro_da_pagare: 0, seconde_rate: 0, conta: {} };
+      out.push(s);
+    }
+    s.giocatori += 1;
+    s.seconde_rate += g.seconda || 0;
+    if (g.indeciso) { s.indecisi += 1; continue; }
+    const q = g.quota || 0;
+    if (g.pagato) s.pagato += 1;
+    if (!g.pagato && q > 0) s.da_pagare += 1;
+    if (q === 0) s.quota_zero += 1;
+    if (!g.pagato) s.euro_da_pagare += q;
+    if (q > 0) s.conta[q] = (s.conta[q] || 0) + 1;
+  }
+  // Object.entries(oggetto) = elenco di coppie [chiave, valore]
+  for (const s of out) {
+    let best = 0, n = 0;
+    for (const [q, c] of Object.entries(s.conta)) if (c > n) { n = c; best = Number(q); }
+    s.quota_tipica = best;
+  }
+  return out;
+}
+
+// Da pagare per sezione (mese) del foglio Pagamenti
+function calcMesi(pagamenti) {
+  const out = [];
+  for (const p of pagamenti) {
+    if (p.pagato || p.euro == null) continue;
+    let r = out.find((x) => x.sezione === p.sezione);
+    if (!r) { r = { sezione: p.sezione, totale: 0 }; out.push(r); }
+    r.totale = r2(r.totale + p.euro);
+  }
+  return out;
+}
+
+// Liquidità a fine mese da novembre 2026 a luglio 2027, pessimistica e ottimistica
+function calcAndamento(b, pagamenti, guadagni, squadre) {
+  const MESI = ['Novembre', 'Dicembre', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio'];
+  const BREVI = ['Nov', 'Dic', 'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug'];
+  const pos = (m) => (m >= 11 ? m - 11 : m + 1);   // mese 1-12 → posizione (Nov 2026 = 0 … Lug 2027 = 8)
+  // exec(...) cerca una data gg/mm/aaaa nel testo; restituisce le sue parti o null
+  const parse = (s) => { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s || '').trim()); return m ? { g: +m[1], m: +m[2], a: +m[3] } : null; };
+  // new Array(9).fill(0) = elenco di 9 zeri, uno per mese
+  const uscite = new Array(9).fill(0), entrate = new Array(9).fill(0), indecisi = new Array(9).fill(0);
+  for (const p of pagamenti) {
+    if (p.pagato || p.euro == null) continue;
+    let i = MESI.indexOf(p.sezione);
+    if (i < 0 && p.sezione && p.sezione.startsWith('Pagamenti rimasti')) {
+      const d = parse(p.scadenza);
+      i = d && d.a === 2026 && d.m >= 11 ? pos(d.m) : 0;   // senza scadenza: novembre
+    }
+    if (i >= 0) uscite[i] += p.euro;
+  }
+  for (const g of guadagni) {
+    if (g.euro == null) continue;
+    const d = parse(g.data);
+    let i = 8;                                             // senza data: luglio
+    if (d) {
+      const anno = d.a === 2026 && d.m < 11 ? 2027 : d.a;  // 31/1/2026 = scadenza quote 31/1/2027
+      i = (anno === 2026 && d.m >= 11) || (anno === 2027 && d.m <= 7) ? pos(d.m) : 8;
+    }
+    entrate[i] += g.euro;
+  }
+  indecisi[2] = squadre.reduce((s, q) => s + q.indecisi * q.quota_tipica, 0);   // a gennaio
+  let pess = b.conto + b.paypal, ott = pess;
+  const rows = [{ mese: 'Oggi', mese_esteso: 'Oggi (saldo al ' + b.saldo_al + ')', pessimistica: r2(pess), ottimistica: r2(ott), uscite: 0, entrate: 0, entrate_indecisi: 0 }];
+  for (let i = 0; i < 9; i++) {
+    pess += entrate[i] - uscite[i];
+    ott += entrate[i] + indecisi[i] - uscite[i];
+    rows.push({ mese: BREVI[i], mese_esteso: MESI[i] + (i < 2 ? ' 2026' : ' 2027'), pessimistica: r2(pess), ottimistica: r2(ott), uscite: r2(uscite[i]), entrate: r2(entrate[i]), entrate_indecisi: r2(indecisi[i]) });
+  }
+  return rows;
+}
+
+// Numeri principali e forbice sugli indecisi
+function calcTotali(b, pagamenti, guadagni, squadre, andamento) {
+  const somma = (rows) => r2(rows.reduce((s, x) => s + (x.euro || 0), 0));
+  const da_pagare = somma(pagamenti.filter((p) => !p.pagato));
+  const da_incassare = somma(guadagni);
+  const n_indecisi = squadre.reduce((s, q) => s + q.indecisi, 0);
+  const euro_indecisi = squadre.reduce((s, q) => s + q.indecisi * q.quota_tipica, 0);
+  const lug = andamento.find((a) => a.mese === 'Lug');
+  const futuri = andamento.filter((a) => a.mese !== 'Oggi');
+  const min = futuri.reduce((m, a) => (a.pessimistica < m.pessimistica ? a : m), futuri[0]);
+  const pess = b.totale;
+  return {
+    liquidita: r2(b.conto + b.paypal),
+    da_pagare, diff_pagare: r2(da_pagare - b.pagamenti),
+    da_incassare, diff_incassare: r2(da_incassare - b.guadagni),
+    quote_tot: somma(guadagni.filter((g) => g.gruppo === 'Quote')),
+    figest_tot: somma(guadagni.filter((g) => g.gruppo === 'Rimborsi FIGeST')),
+    figest_senza: guadagni.filter((g) => g.gruppo === 'Rimborsi FIGeST' && g.euro == null).length,
+    altre_tot: somma(guadagni.filter((g) => g.gruppo === 'Altre entrate')),
+    n_indecisi, euro_indecisi,
+    pess, ott: r2(pess + euro_indecisi),
+    dopo_luglio: r2(lug.pessimistica - pess),
+    min_pess: min.pessimistica, min_mese: min.mese_esteso
+  };
+}
+
+// Controllo: quote in Guadagni contro i riepiloghi e contro la somma riga per riga di Tesserati
+function calcControllo(guadagni, riepiloghi, squadre) {
+  const g = (nome) => { const r = guadagni.find((x) => x.nome === nome); return r ? r.euro : null; };
+  const rp = (...voci) => { const t = voci.map((v) => riepiloghi.find((x) => x.voce === v)).filter(Boolean); return t.length ? t.reduce((s, x) => s + (x.da_pagare || 0), 0) : null; };
+  const sq = (campo, ...nomi) => squadre.filter((x) => nomi.includes(x.squadra)).reduce((s, x) => s + x[campo], 0);
+  const junior = ['Neptune U15 Gianni Falchi', 'Neptune U15 Ironbeaters', 'Neptune U17 Ironbeaters'];
+  const rows = [
+    { voce: 'Junior + Zero', guadagni: g('Saldo Quote Junior + Zero'), riepilogo: rp('Junior', 'Zero51'), righe: sq('euro_da_pagare', ...junior, 'Zero51') },
+    { voce: 'Cheet+Bobo', guadagni: g('Cheet+Bobo'), riepilogo: rp('Cheet+Bobo'), righe: sq('euro_da_pagare', 'Cheetahs', 'Borealis') },
+    { voce: 'Shout', guadagni: g('Shout'), riepilogo: rp('Shout'), righe: sq('euro_da_pagare', 'Shout') },
+    { voce: 'Fotta', guadagni: g('Fotta'), riepilogo: rp('Fotta'), righe: sq('euro_da_pagare', 'La Fotta') },
+    { voce: 'Altri', guadagni: g('Altri'), riepilogo: rp('Altri'), righe: sq('euro_da_pagare', 'Altri') },
+    { voce: 'Seconde rate', guadagni: null, riepilogo: rp('Seconde quote'), righe: sq('seconde_rate', ...squadre.map((x) => x.squadra)) }
+  ];
+  for (const r of rows) {
+    const a = r.guadagni == null ? r.righe : r.guadagni;
+    r.esito = r.riepilogo == null ? 'Manca nel riepilogo' : a === r.riepilogo && a === r.righe ? 'Coincide' : 'Non coincide';
+  }
+  return rows;
+}
+
+/* =====================================================================
+   4) DISEGNO
+   querySelectorAll('[data-draw="x"]') trova tutti gli elementi con data-draw="x";
+   textContent scrive il testo (sicuro: non esegue codice). createElement crea un elemento nuovo,
+   appendChild lo aggiunge dentro un altro, replaceChildren() svuota l'elemento.
+   ===================================================================== */
+let STATO = null;   // ultimi dati calcolati, servono per ridisegnare il grafico quando si gira il telefono
+
+function metti(nome, testo) {
+  document.querySelectorAll('[data-draw="' + nome + '"]').forEach((el) => { el.textContent = testo; });
+}
+function cella(tr, testo, cls, label) {
+  const td = document.createElement('td');
+  td.textContent = testo;
+  if (cls) td.className = cls;
+  if (label) td.setAttribute('data-label', label);   // su telefono compare come etichetta
+  tr.appendChild(td);
+  return td;
+}
+function etichetta(td, testo, cls) {
+  const s = document.createElement('span'); s.className = 'tag ' + (cls || ''); s.textContent = testo; td.appendChild(s);
+}
+
+function disegnaTutto(dati) {
+  const b = leggiBilancio(dati.bilancio);
+  const pagamenti = leggiPagamenti(dati.pagamenti);
+  const guadagni = leggiGuadagni(dati.guadagni);
+  const tesserati = leggiTesserati(dati.tesserati);
+  const squadre = calcSquadre(tesserati);
+  const riepiloghi = tesserati.filter((r) => r.tipo === 'riepilogo');
+  const mesi = calcMesi(pagamenti);
+  const andamento = calcAndamento(b, pagamenti, guadagni, squadre);
+  const t = calcTotali(b, pagamenti, guadagni, squadre, andamento);
+  const controllo = calcControllo(guadagni, riepiloghi, squadre);
+  STATO = { andamento };
+
+  // --- numeri singoli ---
+  metti('foto', dati.letti);
+  metti('saldo_al', b.saldo_al || '—');
+  metti('conto', euroFmt(b.conto)); metti('paypal', euroFmt(b.paypal));
+  metti('bil_pagamenti', euroFmt(b.pagamenti)); metti('bil_guadagni', euroFmt(b.guadagni));
+  for (const k of ['liquidita', 'da_pagare', 'da_incassare', 'pess', 'ott', 'min_pess', 'euro_indecisi', 'dopo_luglio', 'quote_tot', 'figest_tot', 'altre_tot']) metti(k, euroFmt(t[k]));
+  metti('n_indecisi', numFmt(t.n_indecisi)); metti('figest_senza', numFmt(t.figest_senza));
+  metti('min_mese', String(t.min_mese).toLowerCase());
+  const lug = andamento.find((a) => a.mese === 'Lug');
+  metti('lug_p', euroFmt(lug.pessimistica)); metti('lug_o', euroFmt(lug.ottimistica));
+  const rv = (voce) => { const r = riepiloghi.find((x) => x.voce === voce); return r ? euroFmt(r.da_pagare) : '—'; };
+  metti('c_ai', rv('All Inclusive')); metti('c_u20', rv('U20'));
+  // Math.abs = valore assoluto: se la differenza col foglio Bilancio è sotto i 5 centesimi, coincide
+  for (const [nome, diff] of [['chk_pagare', t.diff_pagare], ['chk_incassare', t.diff_incassare]]) {
+    const ok = Math.abs(diff) < 0.05;
+    document.querySelectorAll('[data-draw="' + nome + '"]').forEach((el) => {
+      el.textContent = ok ? '✓ coincide con il' : '⚠ diverso dal';
+      el.className = ok ? 'ok' : 'bad';
+    });
+  }
+
+  // --- tabelle Da incassare ---
+  const tabellaGruppo = (id, gruppo, conRate) => {
+    const tb = document.getElementById(id); tb.replaceChildren();
+    for (const g of guadagni.filter((x) => x.gruppo === gruppo && x.euro != null)) {
+      const tr = document.createElement('tr');
+      const td = cella(tr, g.nome);
+      if (conRate && g.arrivato === 'Da aggiornare') etichetta(td, 'in arrivo a rate', 'warn');
+      cella(tr, euroFmt(g.euro), 'r num');
+      tb.appendChild(tr);
+    }
+  };
+  tabellaGruppo('tb_quote', 'Quote', true);
+  tabellaGruppo('tb_figest', 'Rimborsi FIGeST');
+  tabellaGruppo('tb_altre', 'Altre entrate');
+
+  // --- Pagamenti futuri, raggruppati per sezione ---
+  const nomi = { 'Pagamenti rimasti da anno 2025/2026': 'Rimasti dal 2025/2026', 'Ottobre +': 'Ottobre 2027 e oltre', 'Sparsi': 'Sparsi (senza mese)', 'Tesoretti': 'Tesoretti (a occasione)' };
+  const tbP = document.getElementById('tb_pagamenti'); tbP.replaceChildren();
+  let ultima = null;
+  for (const p of pagamenti) {
+    if (p.pagato || p.promemoria) continue;
+    if (p.sezione !== ultima) {
+      ultima = p.sezione;
+      const tr = document.createElement('tr'); tr.className = 'grp';
+      const td = document.createElement('td'); td.colSpan = 3;
+      td.appendChild(document.createTextNode(nomi[p.sezione] || p.sezione || ''));
+      const tot = mesi.find((x) => x.sezione === p.sezione);
+      if (tot) { const s = document.createElement('span'); s.className = 'num'; s.textContent = euroFmt(tot.totale); td.appendChild(s); }
+      tr.appendChild(td); tbP.appendChild(tr);
+    }
+    const tr = document.createElement('tr');
+    cella(tr, p.voce, 'c-main');
+    cella(tr, p.euro == null ? 'da definire' : euroFmt(p.euro), 'c-amt r num');
+    cella(tr, p.scadenza || '—', 'c-sub', 'Scadenza:');
+    tbP.appendChild(tr);
+  }
+
+  // --- Promemoria anticipi (new Map() = elenco chiave → valori, qui mese → voci) ---
+  const ul = document.getElementById('memo'); ul.replaceChildren();
+  const per = new Map();
+  for (const p of pagamenti.filter((x) => x.promemoria)) {
+    if (!per.has(p.sezione)) per.set(p.sezione, []);
+    per.get(p.sezione).push(p.voce);
+  }
+  for (const [mese, voci] of per) {
+    const li = document.createElement('li');
+    const bb = document.createElement('b'); bb.textContent = mese === 'Sparsi' ? 'Quando capita' : mese;
+    const s = document.createElement('span'); s.textContent = voci.join(' · ');   // join unisce le voci con " · "
+    li.append(bb, s); ul.appendChild(li);
+  }
+
+  // --- Quote per squadra ---
+  const tbS = document.getElementById('tb_squadre'); tbS.replaceChildren();
+  for (const q of squadre) {
+    const tr = document.createElement('tr');
+    const td = cella(tr, q.squadra, 'c-main');
+    if (q.prima_squadra) etichetta(td, 'entro 31/01/2027');
+    cella(tr, numFmt(q.giocatori), 'c-stat r num', 'Giocatori:');
+    cella(tr, numFmt(q.pagato), 'c-stat r num', 'Pagato:');
+    cella(tr, numFmt(q.da_pagare), 'c-stat r num' + (q.da_pagare ? ' warn' : ''), 'Devono pagare:');
+    cella(tr, numFmt(q.indecisi), 'c-stat r num' + (q.indecisi ? ' warn' : ''), 'Indecisi:');
+    cella(tr, numFmt(q.quota_zero), 'c-stat r num', 'Quota 0:');
+    cella(tr, euroFmt(q.seconde_rate), 'c-stat r num', 'Seconde rate:');
+    tbS.appendChild(tr);
+  }
+
+  // --- Controllo ---
+  const tbC = document.getElementById('tb_controllo'); tbC.replaceChildren();
+  for (const r of controllo) {
+    const tr = document.createElement('tr');
+    const ok = r.esito === 'Coincide';
+    cella(tr, r.voce, 'c-main');
+    cella(tr, r.guadagni == null ? '—' : euroFmt(r.guadagni), 'c-sub r num', 'Guadagni:');
+    cella(tr, euroFmt(r.riepilogo), 'c-sub r num', 'Riepilogo Tesserati:');
+    cella(tr, euroFmt(r.righe), 'c-sub r num', 'Righe Tesserati:');
+    cella(tr, (ok ? '✓ ' : '⚠ ') + r.esito, 'c-amt ' + (ok ? 'ok' : 'bad'));
+    tbC.appendChild(tr);
+  }
+
+  disegnaGrafico();
+}
+
+/* =====================================================================
+   5) GRAFICO ANDAMENTO (con d3)
+   scaleLinear = trasforma euro in altezza in pixel; scalePoint = mette i mesi a distanza regolare;
+   axisLeft / axisBottom = disegnano gli assi; line() = disegna la linea che unisce i punti;
+   pointer(evento) = posizione del dito/mouse; getBoundingClientRect = dimensioni reali sullo schermo.
+   ===================================================================== */
+function disegnaGrafico() {
+  const el = document.getElementById('grafico');
+  if (!STATO || el.offsetParent === null) return;    // offsetParent null = pagina nascosta: disegno quando si apre
+  el.replaceChildren();
+  const rows = STATO.andamento;
+  const W = Math.max(280, el.clientWidth), stretto = W < 600;
+  const H = stretto ? 260 : 320;
+  const m = { top: 12, right: 12, bottom: 30, left: 8 };
+  const css = getComputedStyle(document.documentElement);
+  const colori = [css.getPropertyValue('--c0').trim(), css.getPropertyValue('--c1').trim()];
+  const y = d3.scaleLinear().domain([Math.min(0, d3.min(rows, (r) => r.pessimistica)), d3.max(rows, (r) => Math.max(r.pessimistica, r.ottimistica)) * 1.08]).nice().range([H - m.bottom, m.top]);
+  const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+    .attr('aria-label', 'Liquidità prevista a fine mese da oggi a luglio 2027, stima pessimistica e ottimistica');
+  const yAxis = svg.append('g').attr('class', 'axis');
+  yAxis.call(d3.axisLeft(y).ticks(stretto ? 4 : 5).tickFormat(euroK).tickSize(0));
+  let lw = 0; yAxis.selectAll('text').each(function () { lw = Math.max(lw, this.getComputedTextLength()); });
+  m.left = Math.ceil(lw) + 10;
+  yAxis.attr('transform', `translate(${m.left},0)`).select('.domain').remove();
+  const x = d3.scalePoint().domain(rows.map((r) => r.mese)).range([m.left + 8, W - m.right - 8]);
+  svg.insert('g', ':first-child').attr('class', 'grid').selectAll('line').data(y.ticks(stretto ? 4 : 5)).join('line')
+    .attr('x1', m.left).attr('x2', W - m.right).attr('y1', (v) => y(v)).attr('y2', (v) => y(v));
+  const xAxis = svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - m.bottom})`).call(d3.axisBottom(x).tickSize(0).tickPadding(10));
+  xAxis.select('.domain').remove();
+  if (x.step() < 34) xAxis.selectAll('.tick').filter((_, i) => i % 2 === 1).select('text').attr('opacity', 0);
+  [['pessimistica', colori[0]], ['ottimistica', colori[1]]].forEach(([k, c]) => {
+    svg.append('path').datum(rows).attr('fill', 'none').style('stroke', c).attr('stroke-width', 2.5)
+      .attr('d', d3.line().x((r) => x(r.mese)).y((r) => y(r[k])));
+    svg.append('g').selectAll('circle').data(rows).join('circle').attr('r', 3.5)
+      .attr('cx', (r) => x(r.mese)).attr('cy', (r) => y(r[k])).style('fill', c);
+  });
+  // Riquadro con i dettagli quando tocchi o passi col mouse su un mese
+  const rule = svg.append('line').attr('y1', m.top).attr('y2', H - m.bottom).style('stroke', '#9aa1ac').attr('opacity', 0);
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; el.appendChild(tip);
+  const mostra = (ev) => {
+    const [px] = d3.pointer(ev, svg.node());
+    let i = Math.round((px - x.range()[0]) / x.step()); i = Math.max(0, Math.min(rows.length - 1, i));
+    const r = rows[i];
+    rule.attr('x1', x(r.mese)).attr('x2', x(r.mese)).attr('opacity', 1);
+    tip.replaceChildren();
+    const tt = document.createElement('b'); tt.textContent = r.mese_esteso; tip.appendChild(tt);
+    const linea = (lab, v) => { const dv = document.createElement('div'); const a = document.createElement('span'); a.className = 'lab'; a.textContent = lab; const bb = document.createElement('span'); bb.className = 'num'; bb.textContent = euroFmt(v); dv.append(a, bb); tip.appendChild(dv); };
+    linea('Pessimistica', r.pessimistica); linea('Ottimistica', r.ottimistica);
+    if (r.mese !== 'Oggi') { linea('Uscite del mese', -r.uscite); linea('Entrate attese', r.entrate); if (r.entrate_indecisi) linea('Quote indecisi', r.entrate_indecisi); }
+    tip.hidden = false;
+    const scala = svg.node().getBoundingClientRect().width / W;
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(el.clientWidth - tw, x(r.mese) * scala - tw / 2)) + 'px';
+    tip.style.top = '0px';
+  };
+  svg.append('rect').attr('x', m.left).attr('y', 0).attr('width', W - m.left - m.right).attr('height', H)
+    .attr('fill', 'transparent').style('touch-action', 'pan-y')
+    .on('pointermove pointerdown', mostra)
+    .on('pointerleave', () => { tip.hidden = true; rule.attr('opacity', 0); });
+}
+// Quando si ruota il telefono o si ridimensiona la finestra, ridisegno il grafico
+window.addEventListener('resize', () => { clearTimeout(window._rz); window._rz = setTimeout(disegnaGrafico, 150); });
+
+/* =====================================================================
+   6) PAGINE E AVVIO
+   I dati sono già dentro la pagina (DATI), messi da build/genera.js.
+   scrollIntoView = fa scorrere la pagina fino alle linguette.
+   ===================================================================== */
+function apri(id, scorri) {
+  document.querySelectorAll('.page').forEach((p) => { p.hidden = p.id !== id; });
+  document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.goto === id)));
+  if (id === 'andamento') disegnaGrafico();
+  if (scorri) document.querySelector('.tabs').scrollIntoView({ block: 'start' });
+}
+document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => apri(b.dataset.goto, b.classList.contains('next'))));
+
+const DATI = /*__DATI__*/null;
+apri('riepilogo', false);
+disegnaTutto(DATI);
+</script>
+</body>
+</html>
