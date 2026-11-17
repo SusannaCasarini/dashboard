@@ -35,35 +35,43 @@
     }
     .contenitore { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
-    header h1 { font-size: 22px; margin: 4px 0; }
-    .aggiornato { color: var(--grigio); font-size: 14px; margin-bottom: 16px; }
+    header h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(32px, 7.5vw, 50px); line-height: 1.08; margin: 4px 0 10px; letter-spacing: -.01em; }
+    .aggiornato { color: var(--grigio); font-size: 13px; margin-bottom: 14px; }
 
     /* Barra con menu squadra e filtro */
     .comandi { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
-    select {
-      font-size: 17px; min-height: 48px; padding: 0 12px; border-radius: 10px;
-      border: 2px solid var(--accento); background: var(--carta2); color: var(--testo); font-weight: 600;
-      flex: 1 1 260px;
-    }
+    /* Barra delle squadre a scorrimento orizzontale, con lineetta colorata sotto la squadra scelta */
+    .squadre-nav { position: sticky; top: 0; z-index: 3; margin: 0 -16px 14px; padding: 0 16px;
+      background: rgba(15,20,32,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--bordo); overflow-x: auto; scrollbar-width: none; scroll-behavior: smooth; }
+    .squadre-nav::-webkit-scrollbar { display: none; }
+    .track { position: relative; display: flex; align-items: center; gap: 2px; width: max-content; min-width: 100%; }
+    .sq-tab { min-height: 50px; padding: 12px 14px; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 500;
+      color: var(--grigio); white-space: nowrap; cursor: pointer; transition: color .2s; }
+    .sq-tab:hover { color: var(--testo); }
+    .sq-tab[aria-selected="true"] { color: var(--col, #fff); font-weight: 700; }
+    .sep { color: var(--grigio); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 0 8px 0 14px; border-left: 1px solid var(--bordo); margin-left: 6px; }
+    .ind { position: absolute; bottom: 0; left: 0; height: 3px; width: 0; border-radius: 3px 3px 0 0; background: var(--col, var(--accento));
+      transition: transform .3s ease, width .3s ease, background .3s; }
+    .giocatori { animation: entra .25s ease; }
+    @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .filtro {
-      display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px;
+      display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
       background: var(--carta2); border: 1px solid #3a4763; border-radius: 10px;
-      font-size: 15px; font-weight: 600; cursor: pointer; user-select: none;
+      font-size: 14px; font-weight: 600; cursor: pointer; user-select: none;
     }
     .filtro input { width: 20px; height: 20px; accent-color: var(--accento); }
     .filtro:has(input:checked) { border-color: var(--accento); background: rgba(59,130,246,.15); }
-    select:focus, .filtro:focus-within { outline: 3px solid rgba(59,130,246,.35); }
+    .filtro:focus-within { outline: 3px solid rgba(59,130,246,.35); }
 
     /* Contatori: griglia 2 colonne su telefono, 5 su schermo largo */
-    .contatori { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
-    @media (min-width: 700px) { .contatori { grid-template-columns: repeat(5, 1fr); } }
-    .contatore { background: var(--carta); border-radius: 12px; padding: 12px; border-left: 5px solid var(--bordo); }
-    .contatore .numero { font-size: 28px; font-weight: 700; }
-    .contatore .etichetta { font-size: 14px; color: var(--grigio); }
-    .contatore.verde { border-left-color: var(--verde); }
+    /* Riquadri di riepilogo piccoli: numero + etichetta su una riga */
+    .contatori { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .contatore { display: inline-flex; align-items: baseline; gap: 6px; background: var(--carta); border: 1px solid var(--bordo);
+      border-radius: 999px; padding: 4px 12px 5px; }
+    .contatore .numero { font-size: 16px; font-weight: 700; }
+    .contatore .etichetta { font-size: 12.5px; color: var(--grigio); }
     .contatore.verde .numero { color: var(--verde); } .contatore.giallo .numero { color: var(--giallo); } .contatore.rosso .numero { color: var(--rosso); }
-    .contatore.giallo { border-left-color: var(--giallo); }
-    .contatore.rosso { border-left-color: var(--rosso); }
 
     /* Schede giocatori: 1 colonna su telefono, 2-3 su schermi più larghi */
     .giocatori { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -94,8 +102,11 @@
       <div class="aggiornato" id="aggiornato"></div>
     </header>
 
+    <nav class="squadre-nav" aria-label="Squadre">
+      <div class="track" id="track" role="tablist"><span class="ind" aria-hidden="true"></span></div>
+    </nav>
+
     <div class="comandi">
-      <select id="sceltaSquadra" aria-label="Scegli la squadra"></select>
       <label class="filtro">
         <input type="checkbox" id="soloDaSistemare">
         Solo chi ha qualcosa da sistemare
@@ -133,46 +144,66 @@
 
     /*
       riempiMenu()
-      Costruisce il menu a tendina: prima le squadre Open/Women, poi le Mixed.
+      Costruisce la barra delle squadre: prima le Open/Women, poi (dopo la scritta "Mixed") le Mixed.
       - map(g => g.squadra): da ogni giocatore prende solo la squadra.
-      - new Set(...): toglie i doppioni. [... ] lo ritrasforma in elenco.
-      - filter(Boolean): toglie i valori vuoti.
-      - sort(): mette in ordine alfabetico.
-      - document.createElement('option'): crea una nuova voce del menu.
-      - appendChild(x): aggiunge x dentro un altro elemento.
+      - new Set(...): toglie i doppioni; [... ] lo ritrasforma in elenco; filter(Boolean) toglie i vuoti; sort() ordina.
+      - createElement('button'): crea un pulsante; dataset.v = valore nascosto attaccato al pulsante.
+      - style.setProperty('--col', colore): dà a ogni squadra il suo colore.
     */
+    const COLORI_SQUADRE = ['#60a5fa', '#f472b6', '#a78bfa', '#fb923c', '#4ade80', '#facc15', '#2dd4bf', '#38bdf8', '#f87171', '#c084fc', '#a3e635', '#fbbf24', '#e879f9'];
+    let SCELTA = '';   // squadra scelta, es. "S:Shout" (S: = Open/Women, M: = Mixed)
+
     function riempiMenu() {
-      const menu = document.getElementById('sceltaSquadra');
+      const track = document.getElementById('track');
       const squadre = [...new Set(tutti.map(g => g.squadra))].filter(Boolean).sort();
       const mixed = [...new Set(tutti.map(g => g.mixed))].filter(Boolean).sort();
-
-      aggiungiGruppo(menu, 'Open / Women', squadre, 'S:');
-      aggiungiGruppo(menu, 'Mixed', mixed, 'M:');
+      let i = 0;
+      const aggiungi = (nome, prefisso) => {
+        const b = document.createElement('button');
+        b.className = 'sq-tab'; b.setAttribute('role', 'tab');
+        b.dataset.v = prefisso + nome; b.textContent = nome;
+        b.style.setProperty('--col', COLORI_SQUADRE[i++ % COLORI_SQUADRE.length]);
+        b.addEventListener('click', () => scegli(b.dataset.v));
+        track.appendChild(b);
+      };
+      squadre.forEach(n => aggiungi(n, 'S:'));
+      if (mixed.length) { const sep = document.createElement('span'); sep.className = 'sep'; sep.textContent = 'Mixed'; track.appendChild(sep); }
+      mixed.forEach(n => aggiungi(n, 'M:'));
 
       // Se nel link c'è già una squadra (es. ...#S:Shout) la riapro; location.hash = la parte dopo #
       const salvata = decodeURIComponent(location.hash.slice(1));
-      if (salvata && [...menu.options].some(o => o.value === salvata)) menu.value = salvata;
-
-      // addEventListener('change', ...): quando cambi squadra, ridisegna e ricorda la scelta nel link
-      menu.addEventListener('change', () => {
-        location.hash = encodeURIComponent(menu.value);
-        disegna();
-      });
+      const valori = [...track.querySelectorAll('.sq-tab')].map(b => b.dataset.v);
+      SCELTA = valori.includes(salvata) ? salvata : valori[0];
       document.getElementById('soloDaSistemare').addEventListener('change', disegna);
+      window.addEventListener('resize', muoviIndicatore);
+      aggiornaBarra();
     }
 
-    // aggiungiGruppo: crea un gruppo di voci nel menu (optgroup = titolo grigio non selezionabile)
-    function aggiungiGruppo(menu, titolo, nomi, prefisso) {
-      if (!nomi.length) return;
-      const gruppo = document.createElement('optgroup');
-      gruppo.label = titolo;
-      nomi.forEach(n => {
-        const voce = document.createElement('option');
-        voce.value = prefisso + n;   // il prefisso distingue squadra normale (S:) da mixed (M:)
-        voce.textContent = n;
-        gruppo.appendChild(voce);
-      });
-      menu.appendChild(gruppo);
+    // scegli(v): cambia squadra, la ricorda nel link e ridisegna
+    function scegli(v) {
+      SCELTA = v;
+      history.replaceState(null, '', '#' + encodeURIComponent(v));   // cambia il link senza ricaricare la pagina
+      aggiornaBarra();
+      disegna();
+    }
+
+    // aggiornaBarra(): segna la squadra scelta e sposta la lineetta colorata
+    function aggiornaBarra() {
+      document.querySelectorAll('.sq-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.v === SCELTA)));
+      muoviIndicatore();
+    }
+
+    /* muoviIndicatore(): offsetLeft/offsetWidth = posizione e larghezza della squadra scelta;
+       scrollTo fa scorrere la barra in modo che la squadra scelta resti al centro. */
+    function muoviIndicatore() {
+      const b = document.querySelector('.sq-tab[aria-selected="true"]');
+      const ind = document.querySelector('.ind');
+      if (!b || !ind) return;
+      ind.style.width = b.offsetWidth + 'px';
+      ind.style.transform = 'translateX(' + b.offsetLeft + 'px)';
+      ind.style.setProperty('--col', b.style.getPropertyValue('--col'));
+      const nav = document.querySelector('.squadre-nav');
+      nav.scrollTo({ left: b.offsetLeft - (nav.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
     }
 
     /*
@@ -192,7 +223,7 @@
       - innerHTML = '': svuota l'elemento prima di ridisegnarlo.
     */
     function disegna() {
-      const scelta = document.getElementById('sceltaSquadra').value;
+      const scelta = SCELTA;
       const eMixed = scelta.startsWith('M:');
       const nomeSquadra = scelta.slice(2);
 
@@ -213,6 +244,7 @@
 
       const area = document.getElementById('giocatori');
       area.innerHTML = '';
+      area.style.animation = 'none'; void area.offsetWidth; area.style.animation = '';   // fa ripartire la dissolvenza
       if (!lista.length) {
         area.innerHTML = '<div class="messaggio">Nessun giocatore da mostrare 🎉</div>';
         return;
