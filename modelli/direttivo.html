@@ -249,7 +249,7 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
     <h2>Controllo</h2>
     <p class="muted">Quote attese in Guadagni contro i riepiloghi “Da Pagare” in fondo a Tesserati, e contro il conto fatto riga per riga (quote non ancora pagate).</p>
     <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Guadagni</th><th class="r">Riepilogo Tesserati</th><th class="r">Righe Tesserati</th><th>Esito</th></tr></thead><tbody id="tb_controllo"></tbody></table>
-    <p class="muted" style="margin:10px 0 0">All Inclusive (<span class="num" data-draw="c_ai">—</span>) e U20 (<span class="num" data-draw="c_u20">—</span>) nei riepiloghi non hanno una riga propria in Guadagni.</p>
+    <p class="muted" style="margin:10px 0 0">Righe Tesserati = somma giocatore per giocatore (colonna I non pagata, più le seconde rate in H dove indicato). Riepilogo Tesserati = le formule in fondo al foglio, che usano intervalli di righe fissi. All Inclusive (<span class="num" data-draw="c_ai">—</span>) nel riepilogo non ha una riga propria in Guadagni.</p>
     <button class="next" data-goto="andamento">Avanti: Andamento ›</button>
   </section>
 
@@ -475,7 +475,8 @@ function calcControllo(guadagni, riepiloghi, squadre) {
   const sq = (campo, ...nomi) => squadre.filter((x) => nomi.includes(x.squadra)).reduce((s, x) => s + x[campo], 0);
   const junior = ['Neptune U15 Gianni Falchi', 'Neptune U15 Ironbeaters', 'Neptune U17 Ironbeaters'];
   const rows = [
-    { voce: 'Junior + Zero', guadagni: g('Saldo Quote Junior + Zero'), riepilogo: rp('Junior', 'Zero51'), righe: sq('euro_da_pagare', ...junior, 'Zero51') },
+    // "Saldo Quote Junior + Zero" in Guadagni comprende quote non pagate E seconde rate di Junior, U20 e Zero51
+    { voce: 'Junior + U20 + Zero51 (con seconde rate)', guadagni: g('Saldo Quote Junior + Zero'), riepilogo: rp('Junior', 'U20', 'Zero51', 'Seconde quote'), righe: sq('euro_da_pagare', ...junior, 'Neptune U20', 'Zero51') + sq('seconde_rate', ...junior, 'Neptune U20', 'Zero51') },
     { voce: 'Cheet+Bobo', guadagni: g('Cheet+Bobo'), riepilogo: rp('Cheet+Bobo'), righe: sq('euro_da_pagare', 'Cheetahs', 'Borealis') },
     { voce: 'Shout', guadagni: g('Shout'), riepilogo: rp('Shout'), righe: sq('euro_da_pagare', 'Shout') },
     { voce: 'Fotta', guadagni: g('Fotta'), riepilogo: rp('Fotta'), righe: sq('euro_da_pagare', 'La Fotta') },
