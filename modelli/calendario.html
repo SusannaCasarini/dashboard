@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendario Shout 2027 · Bologna Flying Disc</title>
+  <!--
+    CALENDARIO SHOUT 2027 (modello)
+    build/calendario.js mette al posto del segnaposto EVENTI (nello script in fondo) l'elenco degli impegni del weekend
+    letti dal foglio "Calendario Shout". Pagina pubblica: niente note, niente allenamenti.
+  -->
+  <style>
+    :root {
+      color-scheme: dark;
+      --sfondo: #0f1420; --carta: #182032; --carta2: #1f2a40;
+      --testo: #e8ecf3; --grigio: #9aa4b5; --bordo: #2a3448;
+      --naz: #38bdf8;    --naz-bg: rgba(56,189,248,.20);
+      --shout: #f87171;  --shout-bg: rgba(239,68,68,.24);
+      --evento: #facc15; --evento-bg: rgba(250,204,21,.20);
+      --festa: #9aa4b5;  --festa-bg: rgba(154,164,181,.14);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px; background: var(--sfondo); color: var(--testo); }
+    .contenitore { max-width: 1100px; margin: 0 auto; padding: 16px 16px 48px; }
+    a { color: inherit; }
+    .torna { color: var(--grigio); font-size: 14px; text-decoration: none; display: inline-block; padding: 8px 0; }
+    h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(32px, 7.5vw, 50px);
+      line-height: 1.08; margin: 4px 0 6px; letter-spacing: -.01em; }
+    h1 em { font-style: normal; color: var(--shout); }
+    .sotto { color: var(--grigio); font-size: 14px; margin-bottom: 18px; }
+
+    /* Prossimo impegno */
+    .prossimo { display: flex; gap: 16px; align-items: center; background: var(--carta); border: 1px solid var(--bordo);
+      border-left: 5px solid var(--c); border-radius: 14px; padding: 16px 18px; margin-bottom: 18px; }
+    .prossimo .eti { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--grigio); }
+    .prossimo .tit { font-size: 22px; font-weight: 700; margin: 2px 0; }
+    .prossimo .dt { color: var(--grigio); font-size: 15px; }
+    .prossimo .tra { margin-left: auto; text-align: center; min-width: 76px; }
+    .prossimo .tra b { display: block; font-size: 34px; line-height: 1; color: var(--c); font-family: Georgia, serif; font-weight: 400; }
+    .prossimo .tra span { font-size: 12px; color: var(--grigio); }
+
+    /* Comandi: filtri + vista */
+    .comandi { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .filtri { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px;
+      border: 1px solid var(--bordo); background: var(--carta2); color: var(--testo); font: inherit; font-size: 15px; cursor: pointer; }
+    .chip .pallino { width: 12px; height: 12px; border-radius: 50%; background: var(--c); }
+    .chip[aria-pressed="false"] { opacity: .45; }
+    .chip[aria-pressed="false"] .pallino { background: transparent; border: 2px solid var(--c); }
+    .vista { display: inline-flex; background: var(--carta2); border: 1px solid var(--bordo); border-radius: 12px; padding: 3px; }
+    .vista button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: none; color: var(--grigio);
+      font: inherit; font-size: 15px; cursor: pointer; }
+    .vista button[aria-pressed="true"] { background: var(--carta); color: var(--testo); font-weight: 600; }
+
+    /* Vista mesi */
+    .mesi { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .mese { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 14px; }
+    .mese h2 { font-family: Georgia, serif; font-weight: 400; font-size: 22px; margin: 0 0 10px; text-transform: capitalize; }
+    .griglia { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+    .griglia .gs { font-size: 11px; color: var(--grigio); padding: 2px 0 4px; }
+    .griglia .gs.we { color: var(--testo); }
+    .g { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: 8px;
+      font-size: 14px; color: var(--grigio); position: relative; }
+    .g.we { color: var(--testo); }
+    .g.ev { background: var(--bg); color: var(--c); font-weight: 700; }
+    .g.ev.dc { background: none; border: 2px dashed var(--c); }
+    .g.oggi::after { content: ""; position: absolute; inset: -2px; border: 2px solid var(--testo); border-radius: 9px; }
+    .g.passato { opacity: .35; }
+    .lista-mese { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--bordo); }
+    .lista-mese:empty { display: none; }
+    .vuoto { color: var(--grigio); font-size: 14px; margin: 10px 0 0; }
+
+    /* Riga evento (usata nei mesi e nell'elenco) */
+    .ev-riga { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--bordo); }
+    .ev-riga:last-child { border-bottom: 0; }
+    .ev-riga .barra { width: 5px; align-self: stretch; border-radius: 3px; background: var(--c); flex: none; }
+    .ev-riga .quando { min-width: 92px; font-size: 14px; color: var(--grigio); }
+    .ev-riga .quando b { display: block; color: var(--testo); font-size: 15px; }
+    .ev-riga .cosa { font-weight: 600; font-size: 16px; }
+    .ev-riga .tipo { font-size: 13px; color: var(--c); font-weight: 600; }
+    .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+      border: 1px dashed var(--grigio); color: var(--grigio); margin-left: 6px; vertical-align: 2px; }
+    .ev-riga.passato { opacity: .4; }
+
+    .elenco { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 4px 16px 8px; }
+    .elenco h3 { font-family: Georgia, serif; font-weight: 400; font-size: 20px; margin: 16px 0 2px; text-transform: capitalize; color: var(--grigio); }
+
+    .piede { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+      color: var(--grigio); font-size: 13px; }
+    .scarica { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--naz); background: none;
+      color: var(--testo); font: inherit; font-size: 15px; cursor: pointer; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 600px) {
+      .contenitore { padding: 12px 12px 40px; }
+      .mesi { grid-template-columns: 1fr; }
+      .prossimo .tit { font-size: 19px; }
+      .comandi { flex-direction: column; align-items: stretch; }
+      .vista { align-self: stretch; } .vista button { flex: 1; }
+      .chip { flex: 1 1 auto; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="contenitore">
+  <a class="torna" href="../">← Dashboard BFD</a>
+  <h1>Calendario <em>Shout</em> 2027</h1>
+  <div class="sotto">Impegni del weekend da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
+
+  <div id="prossimo"></div>
+
+  <div class="comandi">
+    <div class="filtri" id="filtri"></div>
+    <div class="vista" role="group" aria-label="Vista">
+      <button data-vista="mesi" aria-pressed="true">Mesi</button>
+      <button data-vista="elenco" aria-pressed="false">Elenco</button>
+    </div>
+  </div>
+
+  <div id="mesi" class="mesi"></div>
+  <div id="elenco" class="elenco" hidden></div>
+
+  <div class="piede">
+    <span>Le date tratteggiate sono da confermare.</span>
+    <button class="scarica" id="ics">📅 Aggiungi al mio calendario (.ics)</button>
+  </div>
+</div>
+
+<script>
+  const EVENTI = __EVENTI__;
+  const TIPI = {
+    nazionale: { nome: 'Nazionale', c: 'var(--naz)', bg: 'var(--naz-bg)' },
+    shout:     { nome: 'Shout',     c: 'var(--shout)', bg: 'var(--shout-bg)' },
+    evento:    { nome: 'Eventi e tornei', c: 'var(--evento)', bg: 'var(--evento-bg)' },
+    festa:     { nome: 'Festività', c: 'var(--festa)', bg: 'var(--festa-bg)' },
+  };
+  const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const GS = ['L','M','M','G','V','S','D'];
+  const GIORNI = ['dom','lun','mar','mer','gio','ven','sab'];
+  const attivi = new Set(['nazionale','shout','evento','festa']);
+
+  const data = (s) => { const [a,m,g] = s.split('-').map(Number); return new Date(a, m - 1, g); };
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const OGGI = iso(oggi);
+
+  // "23–24 gen" oppure "sab 30 gen"
+  function quando(e, lungo) {
+    const a = data(e.inizio), b = data(e.fine);
+    const m = (d) => lungo ? MESI[d.getMonth()] : MESI[d.getMonth()].slice(0,3);
+    if (e.inizio === e.fine) return `${GIORNI[a.getDay()]} ${a.getDate()} ${m(a)}`;
+    if (a.getMonth() === b.getMonth()) return `${a.getDate()}–${b.getDate()} ${m(a)}`;
+    return `${a.getDate()} ${m(a)} – ${b.getDate()} ${m(b)}`;
+  }
+  const visibili = () => EVENTI.filter(e => attivi.has(e.tipo));
+  const passato = (e) => e.fine < OGGI;
+
+  function riga(e) {
+    const t = TIPI[e.tipo];
+    const a = data(e.inizio);
+    const giorni = e.inizio === e.fine ? GIORNI[a.getDay()] : `${GIORNI[a.getDay()]}–${GIORNI[data(e.fine).getDay()]}`;
+    return `<li class="ev-riga${passato(e) ? ' passato' : ''}" style="--c:${t.c}">
+      <span class="barra"></span>
+      <span class="quando"><b>${quando(e)}</b>${giorni}</span>
+      <span><div class="cosa">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
+      <div class="tipo">${t.nome}</div></span></li>`;
+  }
+
+  function disegnaProssimo() {
+    const e = EVENTI.find(x => x.fine >= OGGI && x.tipo !== 'festa');
+    const box = document.getElementById('prossimo');
+    if (!e) { box.innerHTML = ''; return; }
+    const t = TIPI[e.tipo];
+    const n = Math.round((data(e.inizio) - oggi) / 86400000);
+    box.innerHTML = `<div class="prossimo" style="--c:${t.c}">
+      <div><div class="eti">Prossimo impegno · ${t.nome}</div>
+      <div class="tit">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
+      <div class="dt">${quando(e, true)}</div></div>
+      <div class="tra">${n <= 0 ? '<b>oggi</b>' : `<b>${n}</b><span>${n === 1 ? 'giorno' : 'giorni'}</span>`}</div></div>`;
+  }
+
+  function disegnaFiltri() {
+    document.getElementById('filtri').innerHTML = Object.entries(TIPI)
+      .filter(([k]) => EVENTI.some(e => e.tipo === k))
+      .map(([k, t]) => `<button class="chip" data-tipo="${k}" aria-pressed="${attivi.has(k)}" style="--c:${t.c}">
+        <span class="pallino"></span>${t.nome}</button>`).join('');
+  }
+
+  function disegnaMesi() {
+    const ev = visibili();
+    // giorno → evento
+    const perGiorno = {};
+    for (const e of ev) for (let d = data(e.inizio); iso(d) <= e.fine; d.setDate(d.getDate() + 1)) perGiorno[iso(d)] ??= e;
+    let html = '';
+    for (let m = 0; m <= 8; m++) {
+      const primo = new Date(2027, m, 1), ultimo = new Date(2027, m + 1, 0).getDate();
+      const vuote = (primo.getDay() + 6) % 7;     // lunedì = 0
+      let celle = GS.map((g, i) => `<div class="gs${i >= 5 ? ' we' : ''}">${g}</div>`).join('');
+      celle += '<div></div>'.repeat(vuote);
+      for (let g = 1; g <= ultimo; g++) {
+        const d = new Date(2027, m, g), k = iso(d), e = perGiorno[k];
+        const we = d.getDay() === 0 || d.getDay() === 6;
+        const cls = ['g', we && 'we', e && 'ev', e && e.daConfermare && 'dc', k === OGGI && 'oggi', k < OGGI && 'passato'].filter(Boolean).join(' ');
+        const st = e ? ` style="--c:${TIPI[e.tipo].c};--bg:${TIPI[e.tipo].bg}" title="${e.titolo}"` : '';
+        celle += `<div class="${cls}"${st}>${g}</div>`;
+      }
+      const delMese = ev.filter(e => data(e.inizio).getMonth() === m || data(e.fine).getMonth() === m);
+      html += `<section class="mese"><h2>${MESI[m]}</h2><div class="griglia">${celle}</div>
+        ${delMese.length ? `<ul class="lista-mese">${delMese.map(riga).join('')}</ul>` : '<p class="vuoto">Nessun impegno nel weekend</p>'}</section>`;
+    }
+    document.getElementById('mesi').innerHTML = html;
+  }
+
+  function disegnaElenco() {
+    let html = '', mese = -1;
+    for (const e of visibili()) {
+      const m = data(e.inizio).getMonth();
+      if (m !== mese) { if (mese >= 0) html += '</ul>'; html += `<h3>${MESI[m]}</h3><ul class="lista-mese" style="border:0;margin:0">`; mese = m; }
+      html += riga(e);
+    }
+    document.getElementById('elenco').innerHTML = html + (mese >= 0 ? '</ul>' : '<p class="vuoto">Nessun impegno</p>');
+  }
+
+  function disegna() { disegnaFiltri(); disegnaMesi(); disegnaElenco(); }
+
+  document.getElementById('filtri').addEventListener('click', (ev) => {
+    const b = ev.target.closest('.chip'); if (!b) return;
+    const k = b.dataset.tipo;
+    attivi.has(k) ? attivi.delete(k) : attivi.add(k);
+    disegna();
+  });
+  document.querySelectorAll('.vista button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.vista button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.getElementById('mesi').hidden = b.dataset.vista !== 'mesi';
+    document.getElementById('elenco').hidden = b.dataset.vista !== 'elenco';
+  }));
+
+  // File .ics con gli impegni visibili, da aprire con Google Calendar / Calendario iPhone
+  document.getElementById('ics').addEventListener('click', () => {
+    const f = (s) => s.replace(/-/g, '');
+    const fineEsclusa = (s) => { const d = data(s); d.setDate(d.getDate() + 1); return f(iso(d)); };
+    const righe = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//BFD//Calendario Shout 2027//IT','CALSCALE:GREGORIAN'];
+    visibili().forEach((e, i) => righe.push('BEGIN:VEVENT', `UID:shout2027-${i}-${f(e.inizio)}@bfd`,
+      `DTSTAMP:${f(OGGI)}T000000Z`, `DTSTART;VALUE=DATE:${f(e.inizio)}`, `DTEND;VALUE=DATE:${fineEsclusa(e.fine)}`,
+      `SUMMARY:${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`, `CATEGORIES:${TIPI[e.tipo].nome}`, 'END:VEVENT'));
+    righe.push('END:VCALENDAR');
+    const url = URL.createObjectURL(new Blob([righe.join('\r\n')], { type: 'text/calendar' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'calendario-shout-2027.ics' });
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  disegnaProssimo();
+  disegna();
+</script>
+</body>
+</html>
