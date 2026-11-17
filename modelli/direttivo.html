@@ -247,9 +247,9 @@ h2 { font-size: 19px; font-weight: 600; margin: 0 0 10px; }
 
   <section class="page check" id="controllo" hidden>
     <h2>Controllo</h2>
-    <p class="muted">Quote attese in Guadagni contro i riepiloghi “Da Pagare” in fondo a Tesserati, e contro il conto fatto riga per riga (quote non ancora pagate).</p>
+    <p class="muted">La cifra scritta in Guadagni è allineata con le quote dei giocatori? Il riferimento è “Righe Tesserati”: la somma, giocatore per giocatore, delle quote in colonna I non ancora pagate (sempre la cifra dovuta da quel giocatore). “Riepilogo Tesserati” è solo informativo.</p>
     <table class="tbl cards"><thead><tr><th>Voce</th><th class="r">Guadagni</th><th class="r">Riepilogo Tesserati</th><th class="r">Righe Tesserati</th><th>Esito</th></tr></thead><tbody id="tb_controllo"></tbody></table>
-    <p class="muted" style="margin:10px 0 0">Righe Tesserati = somma giocatore per giocatore (colonna I non pagata, più le seconde rate in H dove indicato). Riepilogo Tesserati = le formule in fondo al foglio, che usano intervalli di righe fissi. All Inclusive (<span class="num" data-draw="c_ai">—</span>) nel riepilogo non ha una riga propria in Guadagni.</p>
+    <p class="muted" style="margin:10px 0 0">Nella prima riga sono comprese anche le seconde rate (colonna H). Il riepilogo in fondo al foglio usa intervalli di righe fissi, per questo può non coincidere. All Inclusive (<span class="num" data-draw="c_ai">—</span>) nel riepilogo non ha una riga propria in Guadagni.</p>
     <button class="next" data-goto="andamento">Avanti: Andamento ›</button>
   </section>
 
@@ -481,11 +481,12 @@ function calcControllo(guadagni, riepiloghi, squadre) {
     { voce: 'Shout', guadagni: g('Shout'), riepilogo: rp('Shout'), righe: sq('euro_da_pagare', 'Shout') },
     { voce: 'Fotta', guadagni: g('Fotta'), riepilogo: rp('Fotta'), righe: sq('euro_da_pagare', 'La Fotta') },
     { voce: 'Altri', guadagni: g('Altri'), riepilogo: rp('Altri'), righe: sq('euro_da_pagare', 'Altri') },
-    { voce: 'Seconde rate', guadagni: null, riepilogo: rp('Seconde quote'), righe: sq('seconde_rate', ...squadre.map((x) => x.squadra)) }
   ];
+  // Il riferimento è la somma riga per riga (la quota in colonna I è sempre quella dovuta):
+  // l'esito dice se la cifra scritta in Guadagni è allineata; il riepilogo in fondo a Tesserati è solo informativo.
   for (const r of rows) {
-    const a = r.guadagni == null ? r.righe : r.guadagni;
-    r.esito = r.riepilogo == null ? 'Manca nel riepilogo' : a === r.riepilogo && a === r.righe ? 'Coincide' : 'Non coincide';
+    const diff = r2((r.guadagni || 0) - r.righe);
+    r.esito = Math.abs(diff) < 0.5 ? 'Coincide' : 'Guadagni ' + (diff > 0 ? '+' : '−') + euroFmt(Math.abs(diff));
   }
   return rows;
 }
@@ -638,7 +639,7 @@ function disegnaTutto(dati) {
     cella(tr, r.guadagni == null ? '—' : euroFmt(r.guadagni), 'c-sub r num', 'Guadagni:');
     cella(tr, euroFmt(r.riepilogo), 'c-sub r num', 'Riepilogo Tesserati:');
     cella(tr, euroFmt(r.righe), 'c-sub r num', 'Righe Tesserati:');
-    cella(tr, (ok ? '✓ ' : '⚠ ') + r.esito, 'c-amt ' + (ok ? 'ok' : 'bad'));
+    cella(tr, (ok ? '✓ ' : '⚠ ') + r.esito, 'c-amt ' + (ok ? 'ok' : 'warn'));
     tbC.appendChild(tr);
   }
 

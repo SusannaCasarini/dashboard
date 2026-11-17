@@ -202,7 +202,7 @@
       // Contatori calcolati su tutta la squadra (prima del filtro)
       const conta = test => lista.filter(test).length;
       disegnaContatori([
-        { n: conta(g => g.quota.testo === 'Pagata'), testo: 'Quote pagate', livello: 'verde' },
+        { n: conta(g => g.quota.livello === 'verde'), testo: 'Quote a posto', livello: 'verde' },
         { n: conta(g => g.quota.testo.startsWith('Da pagare') || g.quota.testo === 'Prima rata pagata'), testo: 'Quote da completare', livello: 'giallo' },
         { n: conta(g => g.quota.testo === 'Indeciso'), testo: 'Indecisi', livello: 'giallo' },
         { n: conta(g => !g.cartaceo || !g.golee), testo: 'Certificati da sistemare', livello: 'rosso' },
@@ -298,6 +298,7 @@
       if (codice === 'indeciso') return { testo: 'Indeciso', livello: 'giallo' };
       if (codice === 'pagata') return { testo: 'Pagata', livello: 'verde' };
       if (codice === 'prima_rata') return { testo: 'Prima rata pagata', livello: 'giallo' };
+      if (codice === 'nulla') return { testo: 'Niente da pagare', livello: 'verde' };
       if (codice === 'da_verificare') return { testo: 'Da verificare', livello: 'giallo' };
       if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', livello: oggi <= new Date(2027, 0, 31) ? 'giallo' : 'rosso' };
       return { testo: 'Da pagare', livello: 'rosso' };

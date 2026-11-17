@@ -65,7 +65,8 @@ function codiceQuota(secondaRata, importo, pagato, squadra) {
   const imp = String(importo ?? '').trim();
   if (imp === '?') return 'indeciso';
   if (vero(pagato)) return numero(secondaRata) > 0 ? 'prima_rata' : 'pagata';
-  if (imp === '' || numero(imp) === 0) return 'da_verificare';
+  if (imp === '') return 'da_verificare';        // cella vuota: manca l'informazione
+  if (numero(imp) === 0) return 'nulla';         // quota 0 = non deve pagare niente (c'è sempre un motivo)
   return PRIME.includes(squadra) ? 'da_pagare_31_01' : 'da_pagare';
 }
 
