@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Calendario Shout 2027</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="logo.png">
   <!--
     CALENDARIO SHOUT 2027 (modello)
     build/calendario.js mette al posto del segnaposto EVENTI (nello script in fondo) l'elenco degli impegni del weekend
@@ -27,6 +29,9 @@
     .contenitore { max-width: 1100px; margin: 0 auto; padding: 16px 16px 48px; }
     a { color: inherit; }
     .torna { color: var(--grigio); font-size: 14px; text-decoration: none; display: inline-block; padding: 8px 0; }
+    .testata { display: flex; align-items: center; gap: 16px; margin: 4px 0 18px; }
+    .testata img { width: 72px; height: 72px; flex: none; filter: drop-shadow(0 4px 14px rgba(200,22,26,.35)); }
+    .testata .sotto { margin-bottom: 0; }
     h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(32px, 7.5vw, 50px);
       line-height: 1.08; margin: 4px 0 6px; letter-spacing: -.01em; }
     h1 em { font-style: normal; color: var(--shout); }
@@ -109,6 +114,8 @@
 
     @media (max-width: 600px) {
       .contenitore { padding: 12px 12px 40px; }
+      .testata { gap: 12px; } .testata img { width: 56px; height: 56px; }
+      .testata h1 { font-size: 27px; }
       .mesi { grid-template-columns: 1fr; }
       .prossimo .tit { font-size: 19px; }
       .comandi { flex-direction: column; align-items: stretch; }
@@ -119,8 +126,13 @@
 </head>
 <body>
 <div class="contenitore">
-  <h1>Calendario <em>Shout</em> 2027</h1>
-  <div class="sotto">Impegni da gennaio a settembre · aggiornato al 18/11/2026</div>
+  <header class="testata">
+    <img src="logo.png" alt="Logo Shout">
+    <div>
+      <h1>Calendario <em>Shout</em> 2027</h1>
+      <div class="sotto">Impegni da gennaio a settembre · aggiornato al 18/11/2026</div>
+    </div>
+  </header>
 
   <div id="prossimo"></div>
 
