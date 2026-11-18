@@ -275,8 +275,8 @@
       const conta = test => lista.filter(test).length;
       disegnaContatori([
         { n: conta(g => g.quota.livello === 'verde'), testo: 'Quote a posto', livello: 'verde' },
-        { n: conta(g => g.quota.livello !== 'verde' && g.quota.testo !== 'Indeciso'), testo: 'Quote da pagare', livello: 'rosso' },
-        { n: conta(g => g.quota.testo === 'Indeciso'), testo: 'Indecisi', livello: 'giallo' },
+        { n: conta(g => g.quota.livello !== 'verde' && g.quota.testo !== 'Incerto'), testo: 'Quote da pagare', livello: 'rosso' },
+        { n: conta(g => g.quota.testo === 'Incerto'), testo: 'Incerti', livello: 'giallo' },
         { n: conta(g => !g.modulo || !!g.notaModulo), testo: 'Moduli da sistemare', livello: 'rosso' },
         { n: conta(g => !g.cartaceo || !g.golee), testo: 'Certificati da sistemare', livello: 'rosso' },
         { n: conta(g => g.advanced.livello !== 'verde'), testo: 'Advanced da sistemare', livello: 'rosso' }
@@ -421,7 +421,7 @@
       if (codice === 'pagata') return { testo: 'Pagata', breve: 'Pagata', livello: 'verde' };
       if (codice === 'prima_rata') return { testo: 'Prima rata pagata', breve: '1ª rata', livello: 'verde' };
       if (codice === 'nulla') return { testo: 'Niente da pagare', breve: 'Nulla', livello: 'verde' };
-      if (codice === 'indeciso') return { testo: 'Indeciso', breve: 'Indeciso', livello: 'rosso' };
+      if (codice === 'indeciso') return { testo: 'Incerto', breve: 'Incerto', livello: 'rosso' };
       if (codice === 'da_verificare') return { testo: 'Da verificare', breve: 'Verificare', livello: 'rosso' };
       // Prime squadre: finché il 31/01 non è passato solo contorno giallo, dopo diventa rossa
       if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', breve: 'Entro 31/01', livello: oggi <= new Date(2027, 0, 31) ? 'attesa' : 'rosso' };
