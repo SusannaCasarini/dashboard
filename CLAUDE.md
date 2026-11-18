@@ -44,7 +44,4 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 # Area preparazione (preparatore e fisioterapista) – `preparazione/`
 - Stessa pagina del calendario in modo "staff": Calendario e Palestra identici, più "Atlete" (panoramica, grafici per esercizio,
   tabella mese per mese) ed "Esercizi" (confronto tra atlete). Legge i pesi dal vivo dallo script Google (sola lettura).
-- Cifrata con password (staticrypt). Si rigenera insieme al calendario SOLO se si passa `BFD_PW_STAFF=…`:
-  `BFD_PW_STAFF=… node build/calendario.js /tmp/bfd-dati/calendario.json`. Senza password la pagina staff resta quella di prima
-  (e il suo calendario resta vecchio): quando aggiorni il calendario chiedi la password a Susanna (è nel documento di progetto,
-  MAI nel repository).
+- Senza password (scelta di Susanna): si rigenera sempre insieme al calendario con `node build/calendario.js …`.
