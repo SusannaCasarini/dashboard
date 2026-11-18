@@ -2,6 +2,7 @@
  * GENERA LE DUE DASHBOARD CIFRATE
  * ------------------------------------------------------------
  * Uso:  BFD_PW_DIRETTIVO=... BFD_PW_COACH=... node build/genera.js <cartella-dati>
+ *       Solo la pagina coach (basta tesserati.json):  BFD_SOLO=coach BFD_PW_COACH=... node build/genera.js <cartella-dati>
  *
  * <cartella-dati> deve contenere 4 file JSON, ognuno uguale al campo "values"
  * restituito da Google Sheets (get_values):
@@ -26,15 +27,17 @@ const { execFileSync } = require('child_process');
 const RADICE = path.join(__dirname, '..');                 // cartella del repository
 const DATI_DIR = process.argv[2];
 const PW = { direttivo: process.env.BFD_PW_DIRETTIVO, coach: process.env.BFD_PW_COACH };
+const SOLO_COACH = process.env.BFD_SOLO === 'coach';   // true = rigenera solo la pagina dei coach
 
 if (!DATI_DIR) throw new Error('Manca la cartella dei dati: node build/genera.js <cartella-dati>');
-if (!PW.direttivo || !PW.coach) throw new Error('Mancano le password BFD_PW_DIRETTIVO e BFD_PW_COACH');
+if (!PW.coach || (!SOLO_COACH && !PW.direttivo)) throw new Error('Mancano le password BFD_PW_DIRETTIVO e BFD_PW_COACH');
 
 // leggi(nome): apre <cartella-dati>/<nome>.json e lo trasforma in dati
 const leggi = (nome) => JSON.parse(fs.readFileSync(path.join(DATI_DIR, nome + '.json'), 'utf8'));
-const bilancio = leggi('bilancio');
-const pagamenti = leggi('pagamenti');
-const guadagni = leggi('guadagni');
+// Con BFD_SOLO=coach i file del Saldo non servono: al loro posto uso tabelle vuote
+const bilancio = SOLO_COACH ? [] : leggi('bilancio');
+const pagamenti = SOLO_COACH ? [] : leggi('pagamenti');
+const guadagni = SOLO_COACH ? [] : leggi('guadagni');
 const tesserati = leggi('tesserati');
 
 // Data e ora di Roma, es. "17/11/2026 15:30". toLocaleString formatta la data secondo la lingua indicata.
@@ -42,10 +45,13 @@ const letti = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', day:
 
 // ---------- Controlli: se la struttura dei fogli è cambiata mi fermo invece di pubblicare dati sbagliati ----------
 const intest = (tesserati[0] || []).map((x) => String(x).trim().toUpperCase());
-if (intest[0] !== 'COGNOME' || intest[2] !== 'SQUADRA OPEN/WOMEN' || intest[6] !== 'ADVANCED') {
+// Colonne attese: A Cognome, C Squadra, G Advanced, L Firma modulo, M Note modulo, O Cert. cartaceo, P Cert. Golee
+if (intest[0] !== 'COGNOME' || intest[2] !== 'SQUADRA OPEN/WOMEN' || intest[6] !== 'ADVANCED' ||
+    intest[11] !== 'FIRMA MODULO' || intest[12] !== 'NOTE MODULO' ||
+    intest[14] !== 'CERTIFICATO CARTACEO' || intest[15] !== 'CERTIFICATO GOLEE') {
   throw new Error('Il foglio Tesserati ha cambiato colonne: intestazioni trovate ' + JSON.stringify(tesserati[0]));
 }
-if (String((bilancio[1] || [])[0]).trim() !== 'Conto') throw new Error('Il foglio Bilancio ha cambiato struttura');
+if (!SOLO_COACH && String((bilancio[1] || [])[0]).trim() !== 'Conto') throw new Error('Il foglio Bilancio ha cambiato struttura');
 
 // ---------- Dati per il DIRETTIVO: Tesserati solo colonne C-K (niente nomi) ----------
 // slice(2, 11) prende le colonne dalla C (indice 2) alla K (indice 10)
@@ -81,9 +87,12 @@ for (const r of tesserati.slice(1)) {
     squadra,
     mixed: String(r[3] ?? '').trim(),
     quota: codiceQuota(r[7], r[8], r[9], squadra),   // H, I, J
-    cartaceo: vero(r[13]),                          // N
-    golee: vero(r[14]),                             // O
+    modulo: vero(r[11]),                            // L: modulo di ammissione a socio firmato
+    notaModulo: String(r[12] ?? '').trim(),         // M: note sul modulo (es. "una sola firma", "Non ha Golee")
+    cartaceo: vero(r[14]),                          // O
+    golee: vero(r[15]),                             // P
     advanced: String(r[6] ?? '').trim()             // G: data di scadenza come testo
+    // La colonna N (Note) NON esce mai: contiene informazioni economiche.
   });
 }
 const coach = { aggiornato: letti, giocatori };
@@ -124,6 +133,6 @@ function costruisci(nome, dati, titolo) {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-costruisci('direttivo', direttivo, 'BFD · Situazione economica');
+if (!SOLO_COACH) costruisci('direttivo', direttivo, 'BFD · Situazione economica');
 costruisci('coach', coach, 'BFD · Situazione squadre');
 console.log('Fatto: ' + giocatori.length + ' giocatori nella dashboard coach, dati letti il ' + letti);

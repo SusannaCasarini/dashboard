@@ -35,7 +35,10 @@
     }
     .contenitore { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
-    header h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(32px, 7.5vw, 50px); line-height: 1.08; margin: 4px 0 10px; letter-spacing: -.01em; }
+    /* Intestazione: logo piccolo a sinistra, titolo su due righe a destra */
+    .testata { display: flex; align-items: center; gap: 14px; margin: 4px 0 10px; }
+    .logo { width: clamp(56px, 15vw, 76px); height: auto; aspect-ratio: 1; border-radius: 12px; background: #fff; flex: 0 0 auto; }
+    header h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(26px, 6.5vw, 44px); line-height: 1.08; margin: 0; letter-spacing: -.01em; }
     .aggiornato { color: var(--grigio); font-size: 13px; margin-bottom: 14px; }
 
     /* Barra con menu squadra e filtro */
@@ -73,23 +76,45 @@
     .contatore .etichetta { font-size: 12.5px; color: var(--grigio); }
     .contatore.verde .numero { color: var(--verde); } .contatore.giallo .numero { color: var(--giallo); } .contatore.rosso .numero { color: var(--rosso); }
 
-    /* Schede giocatori: 1 colonna su telefono, 2-3 su schermi più larghi */
+    /* Schede giocatori: 1 colonna su telefono, 2 su schermi più larghi (così i rettangolini restano leggibili) */
     .giocatori { display: grid; grid-template-columns: 1fr; gap: 10px; }
     @media (min-width: 700px) { .giocatori { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 1000px) { .giocatori { grid-template-columns: repeat(3, 1fr); } }
     .giocatore { background: var(--carta); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--bordo); }
     .giocatore .nome { color: #fff; }
     .giocatore .riga + .riga { border-top: 1px solid var(--bordo); }
-    .giocatore .nome { font-weight: 700; font-size: 17px; margin-bottom: 8px; }
+    .giocatore .nome { font-weight: 700; font-size: 17px; margin-bottom: 10px; }
+    .giocatore .nome .cognome { letter-spacing: .02em; }
+    .giocatore .nome .nome-proprio { font-weight: 500; }
     .giocatore .nome small { font-weight: 400; color: var(--grigio); font-size: 13px; margin-left: 6px; }
-    .riga { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: 15px; }
-    .riga .voce { color: var(--grigio); }
 
-    /* "Pillole" colorate: colore + icona + parola, così si capiscono anche senza distinguere i colori */
-    .pillola { padding: 3px 10px; border-radius: 999px; font-size: 14px; font-weight: 600; text-align: right; }
-    .pillola.verde { background: var(--verde-chiaro); color: var(--verde); }
-    .pillola.giallo { background: var(--giallo-chiaro); color: var(--giallo); }
-    .pillola.rosso { background: var(--rosso-chiaro); color: var(--rosso); }
+    /* Rettangolini delle voci da controllare: 5 in fila, pieni di colore.
+       Ognuno ha icona + nome della voce + stato in breve, così si legge anche senza distinguere i colori. */
+    .rettangoli { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+    .rett { border-radius: 7px; padding: 6px 4px 5px; text-align: center; min-height: 48px;
+      display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; }
+    .rett .voce { font-size: 13px; letter-spacing: -.01em; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rett .stato { font-size: 11.5px; font-weight: 600; line-height: 1.15; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 420px) {
+      .giocatore { padding: 12px 10px; }
+      .rettangoli { gap: 4px; }
+      .rett { padding: 6px 2px 5px; }
+      .rett .voce { font-size: 11.5px; }
+      .rett .stato { font-size: 11px; white-space: normal; }
+    }
+    .rett.verde { background: #22c55e; color: #052e14; }
+    .rett.giallo { background: #facc15; color: #3b2a00; }
+    .rett.rosso { background: #ef4444; color: #fff; }
+
+    /* Note sul modulo, sotto i rettangolini */
+    .note { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .nota { font-size: 14px; line-height: 1.3; color: var(--testo); padding-left: 10px; border-left: 3px solid var(--grigio); }
+    .nota b { color: var(--grigio); font-weight: 600; }
+    .nota.rossa { color: var(--rosso); border-left-color: var(--rosso); font-weight: 600; }
+
+    /* Legenda dei colori sotto i contatori */
+    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--grigio); margin: -6px 0 14px; }
+    .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+    .legenda i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; }
 
     .messaggio { text-align: center; color: var(--grigio); padding: 40px 10px; }
     .errore { color: var(--rosso); }
@@ -98,7 +123,10 @@
 <body>
   <div class="contenitore">
     <header>
-      <h1>Bologna Flying Disc – Situazione squadre</h1>
+      <div class="testata">
+        <img class="logo" alt="Logo BFD" src="data:image/png;base64,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">
+        <h1>Bologna Flying Disc<br>Situazione squadre</h1>
+      </div>
       <div class="aggiornato" id="aggiornato"></div>
     </header>
 
@@ -114,6 +142,11 @@
     </div>
 
     <div class="contatori" id="contatori"></div>
+    <div class="legenda" aria-label="Legenda colori">
+      <span><i style="background:#22c55e"></i>✓ a posto</span>
+      <span><i style="background:#ef4444"></i>✗ da sistemare</span>
+      <span><i style="background:#facc15"></i>! Advanced in scadenza entro un mese</span>
+    </div>
     <div class="giocatori" id="giocatori">
       <div class="messaggio">Sto leggendo i dati…</div>
     </div>
@@ -208,10 +241,11 @@
 
     /*
       daSistemare(g)
-      Vero se il giocatore ha almeno una voce non verde (quota, cartaceo, Golee o Advanced).
+      Vero se il giocatore ha almeno una voce non verde (quota, modulo, cartaceo, Golee o Advanced)
+      oppure una nota sul modulo.
     */
     function daSistemare(g) {
-      return g.quota.livello !== 'verde' || !g.cartaceo || !g.golee || g.advanced.livello !== 'verde';
+      return g.quota.livello !== 'verde' || !g.modulo || !!g.notaModulo || !g.cartaceo || !g.golee || g.advanced.livello !== 'verde';
     }
 
     /*
@@ -234,8 +268,9 @@
       const conta = test => lista.filter(test).length;
       disegnaContatori([
         { n: conta(g => g.quota.livello === 'verde'), testo: 'Quote a posto', livello: 'verde' },
-        { n: conta(g => g.quota.testo.startsWith('Da pagare') || g.quota.testo === 'Prima rata pagata'), testo: 'Quote da completare', livello: 'giallo' },
+        { n: conta(g => g.quota.livello !== 'verde' && g.quota.testo !== 'Indeciso'), testo: 'Quote da pagare', livello: 'rosso' },
         { n: conta(g => g.quota.testo === 'Indeciso'), testo: 'Indecisi', livello: 'giallo' },
+        { n: conta(g => !g.modulo || !!g.notaModulo), testo: 'Moduli da sistemare', livello: 'rosso' },
         { n: conta(g => !g.cartaceo || !g.golee), testo: 'Certificati da sistemare', livello: 'rosso' },
         { n: conta(g => g.advanced.livello !== 'verde'), testo: 'Advanced da sistemare', livello: 'rosso' }
       ]);
@@ -267,10 +302,20 @@
     }
 
     /*
+      maiuscoloIniziale(t): "LUCA" → "Luca", "VIRGILIO DOMENICO" → "Virgilio Domenico".
+      - toLowerCase(): tutto minuscolo.
+      - replace con l'espressione /(^|[\s'-])(\p{L})/gu: trova la prima lettera di ogni parola
+        (a inizio testo o dopo spazio, apostrofo o trattino) e con toUpperCase() la rende maiuscola.
+    */
+    function maiuscoloIniziale(t) {
+      return String(t || '').toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (tutto, prima, lettera) => prima + lettera.toUpperCase());
+    }
+
+    /*
       schedaGiocatore(g, eMixed)
-      Crea la scheda di un giocatore con le 4 righe (Quota, Cartaceo, Golee, Advanced).
-      Uso textContent e non innerHTML per i nomi: così un nome strano non può "rompere" la pagina.
-      - querySelector('.x'): trova dentro la scheda il primo elemento con class="x".
+      Crea la scheda di un giocatore: COGNOME Nome, poi 5 rettangolini colorati
+      (Quota, Modulo, Cartaceo, Golee, Advanced) e sotto le eventuali note sul modulo.
+      Uso textContent e non innerHTML per nomi e note: così un testo strano non può "rompere" la pagina.
     */
     function schedaGiocatore(g, eMixed) {
       const scheda = document.createElement('div');
@@ -278,7 +323,13 @@
 
       const nome = document.createElement('div');
       nome.className = 'nome';
-      nome.textContent = g.cognome + ' ' + g.nome;
+      const cog = document.createElement('span');
+      cog.className = 'cognome';
+      cog.textContent = g.cognome.toUpperCase();          // toUpperCase(): tutto maiuscolo
+      const nom = document.createElement('span');
+      nom.className = 'nome-proprio';
+      nom.textContent = g.nome ? ' ' + maiuscoloIniziale(g.nome) : '';
+      nome.append(cog, nom);                              // append: aggiunge gli elementi uno dopo l'altro
       if (eMixed) { // nelle squadre mixed mostro anche la squadra di club
         const sq = document.createElement('small');
         sq.textContent = g.squadra;
@@ -286,22 +337,51 @@
       }
       scheda.appendChild(nome);
 
-      scheda.appendChild(riga('Quota', g.quota.testo, g.quota.livello));
-      scheda.appendChild(riga('Certificato cartaceo', g.cartaceo ? 'Consegnato' : 'Manca', g.cartaceo ? 'verde' : 'rosso'));
-      scheda.appendChild(riga('Certificato su Golee', g.golee ? 'Caricato' : 'Manca', g.golee ? 'verde' : 'rosso'));
-      scheda.appendChild(riga('Advanced', g.advanced.testo, g.advanced.livello));
+      const fila = document.createElement('div');
+      fila.className = 'rettangoli';
+      fila.append(
+        rettangolo('Quota', g.quota.breve, g.quota.livello, g.quota.testo),
+        rettangolo('Modulo', g.modulo ? 'Firmato' : 'Manca', g.modulo ? 'verde' : 'rosso', g.modulo ? 'Modulo firmato' : 'Modulo mancante'),
+        rettangolo('Cartaceo', g.cartaceo ? 'Sì' : 'Manca', g.cartaceo ? 'verde' : 'rosso', g.cartaceo ? 'Certificato cartaceo consegnato' : 'Certificato cartaceo mancante'),
+        rettangolo('Golee', g.golee ? 'Sì' : 'Manca', g.golee ? 'verde' : 'rosso', g.golee ? 'Certificato caricato su Golee' : 'Certificato non caricato su Golee'),
+        rettangolo('Advanced', g.advanced.breve, g.advanced.livello, 'Advanced: ' + g.advanced.testo)
+      );
+      scheda.appendChild(fila);
+
+      // Note sul modulo: "Non ha Golee" in rosso, le altre normali
+      if (g.notaModulo) {
+        const note = document.createElement('div');
+        note.className = 'note';
+        const n = document.createElement('div');
+        const golee = /golee/i.test(g.notaModulo);       // test: vero se nel testo c'è "golee" (maiuscole o minuscole)
+        n.className = 'nota' + (golee ? ' rossa' : '');
+        if (golee) {
+          n.textContent = '✗ ' + g.notaModulo;
+        } else {
+          const etichetta = document.createElement('b');
+          etichetta.textContent = 'Modulo: ';
+          n.append(etichetta, document.createTextNode(g.notaModulo));   // createTextNode: un pezzo di testo semplice
+        }
+        note.appendChild(n);
+        scheda.appendChild(note);
+      }
       return scheda;
     }
 
-    // riga: una riga "voce ........ pillola colorata"
-    function riga(voce, testo, livello) {
+    // rettangolo: un riquadrino colorato con icona + voce e sotto lo stato in breve.
+    // title e aria-label contengono la frase completa (per lettori di schermo e passando sopra col mouse).
+    function rettangolo(voce, stato, livello, completo) {
       const r = document.createElement('div');
-      r.className = 'riga';
-      r.innerHTML = '<span class="voce"></span><span class="pillola"></span>';
-      r.querySelector('.voce').textContent = voce;
-      const p = r.querySelector('.pillola');
-      p.classList.add(livello);
-      p.textContent = ICONE[livello] + ' ' + testo;
+      r.className = 'rett ' + livello;
+      r.title = completo;
+      r.setAttribute('aria-label', completo);
+      const v = document.createElement('span');
+      v.className = 'voce';
+      v.textContent = voce;
+      const st = document.createElement('span');
+      st.className = 'stato';
+      st.textContent = ICONE[livello] + ' ' + stato;
+      r.append(v, st);
       return r;
     }
 
@@ -317,23 +397,26 @@
       return isNaN(d.getTime()) ? null : d;
     }
     function due(n) { return String(n).padStart(2, '0'); }   // padStart: 5 → "05"
+    // testo = frase completa, breve = scritta dentro il rettangolino, livello = colore
     function statoAdvanced(testo, oggi) {
       const s = leggiData(testo);
-      if (!s) return { testo: 'Mancante', livello: 'rosso' };
+      if (!s) return { testo: 'Mancante', breve: 'Manca', livello: 'rosso' };
       const giorni = Math.round((s - oggi) / 86400000);   // 86400000 ms = 1 giorno
       const data = due(s.getDate()) + '/' + due(s.getMonth() + 1) + '/' + s.getFullYear();
-      if (giorni < 0) return { testo: 'Scaduto il ' + data, livello: 'rosso' };
-      if (giorni <= 30) return { testo: 'Scade il ' + data, livello: 'giallo' };
-      return { testo: 'Valido fino al ' + data, livello: 'verde' };
+      const corta = due(s.getDate()) + '/' + due(s.getMonth() + 1) + '/' + String(s.getFullYear()).slice(2);   // es. 09/12/26
+      if (giorni < 0) return { testo: 'Scaduto il ' + data, breve: 'Scaduto', livello: 'rosso' };
+      if (giorni <= 30) return { testo: 'Scade il ' + data, breve: corta, livello: 'giallo' };
+      return { testo: 'Valido fino al ' + data, breve: corta, livello: 'verde' };
     }
-    function statoQuota(codice, oggi) {
-      if (codice === 'indeciso') return { testo: 'Indeciso', livello: 'giallo' };
-      if (codice === 'pagata') return { testo: 'Pagata', livello: 'verde' };
-      if (codice === 'prima_rata') return { testo: 'Prima rata pagata', livello: 'giallo' };
-      if (codice === 'nulla') return { testo: 'Niente da pagare', livello: 'verde' };
-      if (codice === 'da_verificare') return { testo: 'Da verificare', livello: 'giallo' };
-      if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', livello: oggi <= new Date(2027, 0, 31) ? 'giallo' : 'rosso' };
-      return { testo: 'Da pagare', livello: 'rosso' };
+    // Quota: verde se è a posto (pagata, prima rata pagata, niente da pagare), rossa in tutti gli altri casi
+    function statoQuota(codice) {
+      if (codice === 'pagata') return { testo: 'Pagata', breve: 'Pagata', livello: 'verde' };
+      if (codice === 'prima_rata') return { testo: 'Prima rata pagata', breve: '1ª rata', livello: 'verde' };
+      if (codice === 'nulla') return { testo: 'Niente da pagare', breve: 'Nulla', livello: 'verde' };
+      if (codice === 'indeciso') return { testo: 'Indeciso', breve: 'Indeciso', livello: 'rosso' };
+      if (codice === 'da_verificare') return { testo: 'Da verificare', breve: 'Verificare', livello: 'rosso' };
+      if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', breve: 'Entro 31/01', livello: 'rosso' };
+      return { testo: 'Da pagare', breve: 'Da pagare', livello: 'rosso' };
     }
 
     // mostraErrore: se qualcosa va storto (es. foglio rinominato) lo scrive in pagina
@@ -346,7 +429,7 @@
     // Avvio: i dati sono già dentro la pagina; trasformo i codici in testi e colori
     const DATI = /*__DATI__*/null;
     const OGGI = new Date(); OGGI.setHours(0, 0, 0, 0);
-    DATI.giocatori.forEach((g) => { g.quota = statoQuota(g.quota, OGGI); g.advanced = statoAdvanced(g.advanced, OGGI); });
+    DATI.giocatori.forEach((g) => { g.quota = statoQuota(g.quota); g.advanced = statoAdvanced(g.advanced, OGGI); });
     datiArrivati(DATI);
   </script>
 </body>

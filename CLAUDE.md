@@ -6,7 +6,9 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 1. Con il connettore Google Sheets (`get_values`, sola lettura) leggi:
    - Saldo 2026/2027 `1wM333Fa7lGGpncYL4S5OCIIJzGOIf3JAZ4WmjtP1jGo`: `Bilancio!A1:E4`, `Pagamenti!A1:E200`, `Guadagni!A1:E100`
    - Quote 2026/2027 `1YlN1VWqhvhOCm1Jmyi45h88gEalx_VN-UtdN4eZWiTk`: `Tesserati!A1:P230`
-   (Tesserati è grande: se serve leggilo a pezzi, es. A1:J230 e N1:O230, e ricomponi le righe A..P.)
+   (Tesserati è grande: se serve leggilo a pezzi, es. A1:J230 e K1:P230, e ricomponi le righe A..P.)
+   Colonne usate per i coach: L Firma modulo, M Note modulo, O Certificato cartaceo, P Certificato Golee.
+   La colonna N (Note) contiene informazioni economiche e non va mai nelle pagine dei coach.
 2. Salva il campo `values` di ciascuno, identico (stesse righe vuote, stessi testi), in `/tmp/bfd-dati/`
    come `bilancio.json`, `pagamenti.json`, `guadagni.json`, `tesserati.json`. MAI dentro il repository.
 3. Controllo: somma della colonna B di Pagamenti con D = FALSE (dalla riga 5) ≈ Bilancio C3 (scarto < 1 €)
