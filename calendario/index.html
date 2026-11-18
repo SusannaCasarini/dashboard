@@ -167,7 +167,7 @@
     .stepper { display: flex; align-items: center; gap: 4px; flex: none; }
     .stepper button { width: 40px; height: 44px; border-radius: 10px; border: 1px solid var(--bordo); background: var(--carta2);
       color: var(--testo); font-size: 20px; cursor: pointer; }
-    .stepper input { width: 64px; text-align: center; padding: 0 4px; }
+    .stepper input { width: 84px; text-align: center; padding: 0 4px; }
     .stepper span { font-size: 13px; color: var(--grigio); margin-left: 2px; }
     .andamento-es { background: var(--carta); border: 1px solid var(--bordo); border-left: 4px solid var(--c); border-radius: 0 14px 14px 0;
       padding: 12px 16px; margin-bottom: 10px; cursor: pointer; }
@@ -188,7 +188,7 @@
       .testata { gap: 12px; } .testata img { width: 56px; height: 56px; }
       .testata h1 { font-size: 27px; }
       .pagine a { flex: 1; justify-content: center; padding: 0 4px; font-size: 14px; }
-      .stepper button { width: 36px; } .stepper input { width: 56px; }
+      .stepper input { width: 76px; }
       .es { grid-template-columns: 1fr auto; }
       .es .n { grid-column: 1 / -1; }
       .es { grid-template-columns: auto auto 1fr; }
@@ -917,11 +917,8 @@
         ${sc.blocchi.filter(b => b.esercizi.some(e => e.carico)).map(b => `<div class="blocco" style="--c:${coloreBlocco(b.nome)}"><h3>${b.nome}</h3>
           ${b.esercizi.filter(e => e.carico).map(e => {
             const ult = u[e.chiave];
-            const passo = /manubri|kettlebell/i.test(e.notaPeso || '') ? 2 : 2.5;
             return `<div class="es-kg"><span class="n">${esc(e.nome)}<small>${e.serie}${e.notaPeso ? ' · ' + e.notaPeso : ''}${ult ? ` · ultima ${kgTesto(ult.kg)} kg` : ''}</small></span>
-              <span class="stepper"><button type="button" data-passo="-${passo}" aria-label="meno">−</button>
-              <input inputmode="decimal" data-chiave="${e.chiave}" data-nome="${esc(e.nome)}" data-ultima="${ult ? ult.kg : ''}" placeholder="${ult ? kgTesto(ult.kg) : 'kg'}" aria-label="kg ${esc(e.nome)}">
-              <button type="button" data-passo="${passo}" aria-label="più">+</button><span>kg</span></span></div>`;
+              <span class="stepper"><input inputmode="decimal" data-chiave="${e.chiave}" data-nome="${esc(e.nome)}" data-ultima="${ult ? ult.kg : ''}" placeholder="${ult ? kgTesto(ult.kg) : ''}" aria-label="kg ${esc(e.nome)}"><span>kg</span></span></div>`;
           }).join('')}</div>`).join('')}
         <button class="bottone" id="pesi-salva">Salva allenamento</button>
         <div class="msg" id="pesi-msg"></div>
@@ -929,11 +926,6 @@
       </div>`;
     box.querySelector('[data-esci]').onclick = esci;
     box.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { schedaPesi = b.dataset.sp; disegnaPesi(); });
-    box.querySelectorAll('[data-passo]').forEach(b => b.onclick = () => {
-      const inp = b.parentNode.querySelector('input');
-      const base = inp.value !== '' ? Number(inp.value.replace(',', '.')) : Number(inp.dataset.ultima || 0);
-      inp.value = kgTesto(Math.max(0, (isFinite(base) ? base : 0) + Number(b.dataset.passo)));
-    });
     const msg = box.querySelector('#pesi-msg');
     box.querySelector('#pesi-salva').onclick = async (ev) => {
       msg.className = 'msg err'; msg.textContent = '';
