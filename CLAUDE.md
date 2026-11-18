@@ -38,3 +38,5 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 - Niente PIN personale: in Atlete la colonna PIN è "0000" per tutte, la pagina lo manda da sola. Nuova giocatrice =
   riga in Atlete con nome visualizzato in MAIUSCOLO ("NOME C."), PIN "0000", Attiva = vero. Chi smette: Attiva = falso
   (i suoi pesi restano). La pagina mostra i nomi in ordine alfabetico.
+- "Programma precedente" in Andamento = data prima di `programma.dal` di palestra.json (Google trasforma "2026-11" in una data: non usare quel campo).
+- La ✕ in Andamento usa l'azione `elimina` dello script: toglie le righe di quell'atleta, quel giorno, quell'esercizio.
