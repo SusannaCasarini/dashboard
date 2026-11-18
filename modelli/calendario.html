@@ -112,10 +112,44 @@
       color: var(--testo); font: inherit; font-size: 15px; cursor: pointer; }
     [hidden] { display: none !important; }
 
+    /* Pagine: Calendario / Palestra */
+    .pagine { display: flex; gap: 4px; border-bottom: 1px solid var(--bordo); margin: 0 0 18px; }
+    .pagine a { flex: 0 0 auto; min-height: 48px; display: flex; align-items: center; padding: 0 18px; text-decoration: none;
+      color: var(--grigio); font-weight: 600; font-size: 16px; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+    .pagine a[aria-selected="true"] { color: var(--testo); border-bottom-color: var(--shout); }
+
+    /* Palestra */
+    .schede-nav { display: flex; width: 100%; margin-bottom: 16px; overflow-x: auto; }
+    .schede-nav button { flex: 1; white-space: nowrap; }
+    .scheda { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 6px 18px 14px; }
+    .scheda-testa { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      padding: 12px 0 6px; }
+    .scheda-testa h2 { font-family: Georgia, serif; font-weight: 400; font-size: 26px; margin: 0; }
+    .luogo { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--c); }
+    .blocco { padding: 14px 0 4px; border-top: 1px solid var(--bordo); }
+    .blocco:first-of-type { border-top: 0; }
+    .blocco h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--shout); }
+    .blocco .nota { color: var(--grigio); font-size: 14px; margin: 2px 0 6px; }
+    .es { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 12px; align-items: center; padding: 9px 0;
+      border-bottom: 1px dashed var(--bordo); }
+    .es:last-child { border-bottom: 0; }
+    .es .n { font-size: 16px; font-weight: 500; }
+    .pill { font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--carta2); white-space: nowrap;
+      font-variant-numeric: tabular-nums; }
+    .pill.rec { font-weight: 500; color: var(--grigio); background: none; border: 1px solid var(--bordo); }
+    .pill.rec::before { content: "⏱ "; }
+    .palestra-piede { color: var(--grigio); font-size: 13px; margin-top: 14px; }
+
     @media (max-width: 600px) {
       .contenitore { padding: 12px 12px 40px; }
       .testata { gap: 12px; } .testata img { width: 56px; height: 56px; }
       .testata h1 { font-size: 27px; }
+      .pagine a { flex: 1; justify-content: center; padding: 0 8px; }
+      .es { grid-template-columns: 1fr auto; }
+      .es .n { grid-column: 1 / -1; }
+      .es { grid-template-columns: auto auto 1fr; }
+      .es .pill { justify-self: start; }
+      .schede-nav button { padding: 0 10px; font-size: 14px; }
       .mesi { grid-template-columns: 1fr; }
       .prossimo .tit { font-size: 19px; }
       .comandi { flex-direction: column; align-items: stretch; }
@@ -129,11 +163,22 @@
   <header class="testata">
     <img src="logo.png" alt="Logo Shout">
     <div>
-      <h1>Calendario <em>Shout</em> 2027</h1>
-      <div class="sotto">Impegni da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
+      <h1 id="titolo">Calendario <em>Shout</em> 2027</h1>
+      <div class="sotto" id="sottotitolo">Impegni da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
     </div>
   </header>
 
+  <nav class="pagine" role="tablist">
+    <a href="#calendario" role="tab" data-pagina="calendario">📅 Calendario</a>
+    <a href="#palestra" role="tab" data-pagina="palestra">🏋️ Palestra</a>
+  </nav>
+
+  <section id="pag-palestra" hidden>
+    <div class="vista schede-nav" role="group" aria-label="Scheda" id="schede-nav"></div>
+    <div id="scheda"></div>
+  </section>
+
+  <section id="pag-calendario">
   <div id="prossimo"></div>
 
   <div class="comandi">
@@ -156,11 +201,13 @@
     <span>Le date tratteggiate sono da confermare.</span>
     <button class="scarica" id="ics">📅 Aggiungi al mio calendario (.ics)</button>
   </div>
+  </section>
 </div>
 
 <script>
   const EVENTI = __EVENTI__;
   const ALLENAMENTI = __ALLENAMENTI__;
+  const PALESTRA = __PALESTRA__;
   // orari e luoghi degli allenamenti per giorno della settimana (1 = lunedì, 2 = martedì, 4 = giovedì)
   const ORARI = { 1: '19:30–21:30 · Battiferro', 2: '19:30–21:30 · Battiferro', 4: '21:00–23:00 · CUSB' };
   const TIPI = {
@@ -311,6 +358,41 @@
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
+  // ===== PALESTRA =====
+  let schedaScelta = PALESTRA.schede[0].id;
+  function disegnaPalestra() {
+    document.getElementById('schede-nav').innerHTML = PALESTRA.schede.map(sc =>
+      `<button data-scheda="${sc.id}" aria-pressed="${sc.id === schedaScelta}">${sc.breve}</button>`).join('');
+    const sc = PALESTRA.schede.find(x => x.id === schedaScelta);
+    const luogo = sc.luogo === 'campo'
+      ? '<span class="luogo" style="--c:var(--all);--bg:var(--all-bg)">In campo</span>'
+      : '<span class="luogo" style="--c:var(--naz);--bg:var(--naz-bg)">In palestra</span>';
+    document.getElementById('scheda').innerHTML = `<article class="scheda">
+      <div class="scheda-testa"><h2>${sc.titolo}</h2>${luogo}</div>
+      ${sc.blocchi.map(b => `<div class="blocco"><h3>${b.nome}</h3>${b.nota ? `<div class="nota">${b.nota}</div>` : ''}
+        ${b.esercizi.map(e => `<div class="es"><span class="n">${e.nome}</span><span class="pill">${e.serie}</span>${e.rec ? `<span class="pill rec">${e.rec}</span>` : '<span></span>'}</div>`).join('')}
+      </div>`).join('')}</article>
+      <p class="palestra-piede">Programma in corso · aggiornato al ${PALESTRA.aggiornato}. Serie x ripetizioni, ⏱ = recupero.</p>`;
+  }
+  document.getElementById('schede-nav').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button'); if (!b) return;
+    schedaScelta = b.dataset.scheda; disegnaPalestra();
+  });
+
+  // ===== CAMBIO PAGINA (dall'indirizzo: #calendario oppure #palestra) =====
+  const SOTTOTITOLO = document.getElementById('sottotitolo').textContent;
+  function mostraPagina() {
+    const pag = location.hash === '#palestra' ? 'palestra' : 'calendario';
+    document.getElementById('pag-calendario').hidden = pag !== 'calendario';
+    document.getElementById('pag-palestra').hidden = pag !== 'palestra';
+    document.querySelectorAll('.pagine a').forEach(a => a.setAttribute('aria-selected', a.dataset.pagina === pag));
+    document.getElementById('titolo').innerHTML = pag === 'palestra' ? 'Palestra <em>Shout</em>' : 'Calendario <em>Shout</em> 2027';
+    document.getElementById('sottotitolo').textContent = pag === 'palestra' ? 'Schede di forza e preparazione atletica' : SOTTOTITOLO;
+  }
+  window.addEventListener('hashchange', mostraPagina);
+
+  disegnaPalestra();
+  mostraPagina();
   disegnaProssimo();
   disegna();
 </script>

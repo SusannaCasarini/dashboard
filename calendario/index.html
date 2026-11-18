@@ -112,10 +112,44 @@
       color: var(--testo); font: inherit; font-size: 15px; cursor: pointer; }
     [hidden] { display: none !important; }
 
+    /* Pagine: Calendario / Palestra */
+    .pagine { display: flex; gap: 4px; border-bottom: 1px solid var(--bordo); margin: 0 0 18px; }
+    .pagine a { flex: 0 0 auto; min-height: 48px; display: flex; align-items: center; padding: 0 18px; text-decoration: none;
+      color: var(--grigio); font-weight: 600; font-size: 16px; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+    .pagine a[aria-selected="true"] { color: var(--testo); border-bottom-color: var(--shout); }
+
+    /* Palestra */
+    .schede-nav { display: flex; width: 100%; margin-bottom: 16px; overflow-x: auto; }
+    .schede-nav button { flex: 1; white-space: nowrap; }
+    .scheda { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 6px 18px 14px; }
+    .scheda-testa { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      padding: 12px 0 6px; }
+    .scheda-testa h2 { font-family: Georgia, serif; font-weight: 400; font-size: 26px; margin: 0; }
+    .luogo { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--c); }
+    .blocco { padding: 14px 0 4px; border-top: 1px solid var(--bordo); }
+    .blocco:first-of-type { border-top: 0; }
+    .blocco h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--shout); }
+    .blocco .nota { color: var(--grigio); font-size: 14px; margin: 2px 0 6px; }
+    .es { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 12px; align-items: center; padding: 9px 0;
+      border-bottom: 1px dashed var(--bordo); }
+    .es:last-child { border-bottom: 0; }
+    .es .n { font-size: 16px; font-weight: 500; }
+    .pill { font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--carta2); white-space: nowrap;
+      font-variant-numeric: tabular-nums; }
+    .pill.rec { font-weight: 500; color: var(--grigio); background: none; border: 1px solid var(--bordo); }
+    .pill.rec::before { content: "⏱ "; }
+    .palestra-piede { color: var(--grigio); font-size: 13px; margin-top: 14px; }
+
     @media (max-width: 600px) {
       .contenitore { padding: 12px 12px 40px; }
       .testata { gap: 12px; } .testata img { width: 56px; height: 56px; }
       .testata h1 { font-size: 27px; }
+      .pagine a { flex: 1; justify-content: center; padding: 0 8px; }
+      .es { grid-template-columns: 1fr auto; }
+      .es .n { grid-column: 1 / -1; }
+      .es { grid-template-columns: auto auto 1fr; }
+      .es .pill { justify-self: start; }
+      .schede-nav button { padding: 0 10px; font-size: 14px; }
       .mesi { grid-template-columns: 1fr; }
       .prossimo .tit { font-size: 19px; }
       .comandi { flex-direction: column; align-items: stretch; }
@@ -129,11 +163,22 @@
   <header class="testata">
     <img src="logo.png" alt="Logo Shout">
     <div>
-      <h1>Calendario <em>Shout</em> 2027</h1>
-      <div class="sotto">Impegni da gennaio a settembre · aggiornato al 18/11/2026</div>
+      <h1 id="titolo">Calendario <em>Shout</em> 2027</h1>
+      <div class="sotto" id="sottotitolo">Impegni da gennaio a settembre · aggiornato al 18/11/2026</div>
     </div>
   </header>
 
+  <nav class="pagine" role="tablist">
+    <a href="#calendario" role="tab" data-pagina="calendario">📅 Calendario</a>
+    <a href="#palestra" role="tab" data-pagina="palestra">🏋️ Palestra</a>
+  </nav>
+
+  <section id="pag-palestra" hidden>
+    <div class="vista schede-nav" role="group" aria-label="Scheda" id="schede-nav"></div>
+    <div id="scheda"></div>
+  </section>
+
+  <section id="pag-calendario">
   <div id="prossimo"></div>
 
   <div class="comandi">
@@ -156,11 +201,93 @@
     <span>Le date tratteggiate sono da confermare.</span>
     <button class="scarica" id="ics">📅 Aggiungi al mio calendario (.ics)</button>
   </div>
+  </section>
 </div>
 
 <script>
   const EVENTI = [{"daConfermare":false,"titolo":"Inizio allenamenti","tipo":"shout","inizio":"2027-01-11","fine":"2027-01-11"},{"titolo":"Tryouts Shout","tipo":"shout","inizio":"2027-01-23","fine":"2027-01-24","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-01-30","fine":"2027-01-30","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-02-13","fine":"2027-02-14","daConfermare":false},{"titolo":"Coppa Shout","tipo":"evento","inizio":"2027-02-20","fine":"2027-02-21","daConfermare":true},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-02-27","fine":"2027-02-28","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-03-13","fine":"2027-03-14","daConfermare":false},{"titolo":"Pasqua e Pasquetta","tipo":"festa","inizio":"2027-03-28","fine":"2027-03-29","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-04-03","fine":"2027-04-04","daConfermare":false},{"titolo":"Incontro formativo online","tipo":"nazionale","inizio":"2027-04-12","fine":"2027-04-12","daConfermare":false,"orario":"19:00–22:00"},{"titolo":"Test Match","tipo":"nazionale","inizio":"2027-04-17","fine":"2027-04-18","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-24","fine":"2027-04-24","daConfermare":false},{"titolo":"Grenoble","tipo":"evento","inizio":"2027-05-01","fine":"2027-05-02","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-05-15","fine":"2027-05-16","daConfermare":true},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-05-29","fine":"2027-05-29","daConfermare":false},{"titolo":"Elite Invite","tipo":"evento","inizio":"2027-06-03","fine":"2027-06-06","daConfermare":false},{"titolo":"Finali CIU","tipo":"evento","inizio":"2027-06-12","fine":"2027-06-13","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-19","fine":"2027-06-20","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-26","fine":"2027-06-27","daConfermare":false},{"titolo":"EUC · Vichy","tipo":"nazionale","inizio":"2027-07-01","fine":"2027-07-10","daConfermare":false},{"daConfermare":false,"titolo":"Raduno Shout","tipo":"shout","inizio":"2027-09-11","fine":"2027-09-12"},{"daConfermare":false,"titolo":"Champions","tipo":"evento","inizio":"2027-09-24","fine":"2027-09-26"}];
   const ALLENAMENTI = [{"data":"2027-01-11","tipo":"allenamento"},{"data":"2027-01-12","tipo":"allenamento"},{"data":"2027-01-14","tipo":"allenamento"},{"data":"2027-01-18","tipo":"allenamento"},{"data":"2027-01-19","tipo":"allenamento"},{"data":"2027-01-21","tipo":"allenamento"},{"data":"2027-01-25","tipo":"allenamento"},{"data":"2027-01-26","tipo":"allenamento"},{"data":"2027-01-28","tipo":"allenamento"},{"data":"2027-02-01","tipo":"allenamento"},{"data":"2027-02-02","tipo":"allenamento"},{"data":"2027-02-04","tipo":"allenamento"},{"data":"2027-02-08","tipo":"allenamento"},{"data":"2027-02-09","tipo":"allenamento"},{"data":"2027-02-11","tipo":"allenamento"},{"data":"2027-02-15","tipo":"pod"},{"data":"2027-02-16","tipo":"allenamento"},{"data":"2027-02-18","tipo":"allenamento"},{"data":"2027-02-22","tipo":"pod"},{"data":"2027-02-23","tipo":"allenamento"},{"data":"2027-02-25","tipo":"allenamento"},{"data":"2027-03-01","tipo":"pod"},{"data":"2027-03-02","tipo":"allenamento"},{"data":"2027-03-04","tipo":"allenamento"},{"data":"2027-03-08","tipo":"allenamento"},{"data":"2027-03-09","tipo":"allenamento"},{"data":"2027-03-11","tipo":"allenamento"},{"data":"2027-03-15","tipo":"pod"},{"data":"2027-03-16","tipo":"allenamento"},{"data":"2027-03-18","tipo":"allenamento"},{"data":"2027-03-22","tipo":"allenamento"},{"data":"2027-03-23","tipo":"allenamento"},{"data":"2027-03-25","tipo":"allenamento"},{"data":"2027-03-30","tipo":"pod"},{"data":"2027-04-01","tipo":"allenamento"},{"data":"2027-04-05","tipo":"allenamento"},{"data":"2027-04-06","tipo":"allenamento"},{"data":"2027-04-08","tipo":"allenamento"},{"data":"2027-04-13","tipo":"allenamento"},{"data":"2027-04-15","tipo":"allenamento"},{"data":"2027-04-19","tipo":"pod"},{"data":"2027-04-20","tipo":"allenamento"},{"data":"2027-04-22","tipo":"allenamento"},{"data":"2027-04-26","tipo":"allenamento"},{"data":"2027-04-27","tipo":"allenamento"},{"data":"2027-04-29","tipo":"allenamento"},{"data":"2027-05-03","tipo":"pod"},{"data":"2027-05-04","tipo":"allenamento"},{"data":"2027-05-06","tipo":"allenamento"},{"data":"2027-05-10","tipo":"allenamento"},{"data":"2027-05-11","tipo":"allenamento"},{"data":"2027-05-13","tipo":"allenamento"},{"data":"2027-05-17","tipo":"allenamento"},{"data":"2027-05-18","tipo":"allenamento"},{"data":"2027-05-20","tipo":"allenamento"},{"data":"2027-05-24","tipo":"allenamento"},{"data":"2027-05-25","tipo":"allenamento"},{"data":"2027-05-27","tipo":"allenamento"},{"data":"2027-05-31","tipo":"allenamento"},{"data":"2027-06-01","tipo":"allenamento"},{"data":"2027-06-07","tipo":"pod"},{"data":"2027-06-08","tipo":"allenamento"},{"data":"2027-06-10","tipo":"allenamento"},{"data":"2027-06-14","tipo":"allenamento"},{"data":"2027-06-15","tipo":"allenamento"},{"data":"2027-06-17","tipo":"allenamento"},{"data":"2027-06-21","tipo":"allenamento"},{"data":"2027-06-22","tipo":"allenamento"},{"data":"2027-06-24","tipo":"allenamento"},{"data":"2027-06-28","tipo":"allenamento"},{"data":"2027-06-29","tipo":"allenamento"}];
+  const PALESTRA = {
+  "aggiornato": "18/11/2026",
+  "schede": [
+    {
+      "id": "pale1", "breve": "Palestra 1", "titolo": "Palestra · Giorno 1", "luogo": "palestra",
+      "blocchi": [
+        { "nome": "Mobilità", "nota": "Quello che vi aiuta di più", "esercizi": [] },
+        { "nome": "Core", "esercizi": [
+          { "nome": "Heavy March 2KB", "serie": "2x20mt", "rec": "" },
+          { "nome": "Pallof Press con elastico", "serie": "2x10+10", "rec": "" },
+          { "nome": "Dead Bug", "serie": "2x8+8", "rec": "" } ] },
+        { "nome": "Plyo", "esercizi": [
+          { "nome": "Pogo Jump", "serie": "3x10sec", "rec": "20s" },
+          { "nome": "Single Leg Pogo", "serie": "2x5+5sec", "rec": "10s" } ] },
+        { "nome": "Power", "esercizi": [
+          { "nome": "CMJ", "serie": "2x8", "rec": "1m" },
+          { "nome": "Single Leg CMJ", "serie": "2x4+4", "rec": "1m" } ] },
+        { "nome": "Strength", "esercizi": [
+          { "nome": "Affondi indietro manubri o bilanciere", "serie": "3x8+8", "rec": "1m" } ] },
+        { "nome": "Comp. e Acc.", "esercizi": [
+          { "nome": "Push Up (ev. zavorra per chi riesce)", "serie": "3x5-10", "rec": "1m" },
+          { "nome": "Hip Thrust bilanciere", "serie": "2x8-10", "rec": "1m" },
+          { "nome": "Rematore su panca 45°", "serie": "2x10", "rec": "1m" },
+          { "nome": "Face Pulls ai cavi", "serie": "3x10", "rec": "1m" } ] }
+      ]
+    },
+    {
+      "id": "pale2", "breve": "Palestra 2", "titolo": "Palestra · Giorno 2", "luogo": "palestra",
+      "blocchi": [
+        { "nome": "Mobilità", "nota": "Quello che vi aiuta di più", "esercizi": [] },
+        { "nome": "Core", "esercizi": [
+          { "nome": "Heavy March", "serie": "2x20mt", "rec": "" },
+          { "nome": "Pallof Press", "serie": "2x10+10", "rec": "" },
+          { "nome": "Dead Bug", "serie": "2x8+8", "rec": "" } ] },
+        { "nome": "Plyo", "esercizi": [
+          { "nome": "Lateral line hops", "serie": "2x10s", "rec": "20s" },
+          { "nome": "Single Leg Lateral line hops", "serie": "2x5+5s", "rec": "10s" } ] },
+        { "nome": "Power", "esercizi": [
+          { "nome": "Drop Jump altezza 30cm", "serie": "2x8", "rec": "1m" },
+          { "nome": "Single Leg Drop Jump altezza 30cm", "serie": "2x4+4", "rec": "1m" } ] },
+        { "nome": "Strength", "esercizi": [
+          { "nome": "RDL Staggered con manubri o kettlebell", "serie": "3x8+8", "rec": "1m" } ] },
+        { "nome": "Comp. e Acc.", "esercizi": [
+          { "nome": "Spinte panca 80° alternate", "serie": "3x8-12", "rec": "1m" },
+          { "nome": "Leg Extension mono PESANTE", "serie": "2x6+6", "rec": "1m" },
+          { "nome": "Lat Machine presa neutra", "serie": "3x8", "rec": "1m" },
+          { "nome": "Push Down", "serie": "3x10", "rec": "1m" } ] }
+      ]
+    },
+    {
+      "id": "prepa1", "breve": "Prepa 1", "titolo": "Prepa · Giorno 1", "luogo": "campo",
+      "blocchi": [
+        { "nome": "Warm Up", "nota": "Simil partita senza disco", "esercizi": [] },
+        { "nome": "Andature", "nota": "1x10mt ciascuna · recupero: corsa per tornare", "esercizi": [
+          { "nome": "A-Skip", "serie": "1x10mt", "rec": "" },
+          { "nome": "Calciata sotto", "serie": "1x10mt", "rec": "" },
+          { "nome": "B-Skip", "serie": "1x10mt", "rec": "" },
+          { "nome": "Calciata dietro", "serie": "1x10mt", "rec": "" },
+          { "nome": "Doppio appoggio", "serie": "1x10mt", "rec": "" },
+          { "nome": "Bounds gambe tese", "serie": "1x10mt", "rec": "" } ] },
+        { "nome": "Run", "esercizi": [
+          { "nome": "Tempo Run", "serie": "6x100mt in 18sec", "rec": "corsa lenta 100mt" } ] }
+      ]
+    },
+    {
+      "id": "prepa2", "breve": "Prepa 2", "titolo": "Prepa · Giorno 2", "luogo": "campo",
+      "blocchi": [
+        { "nome": "Warm Up", "nota": "Simil partita senza disco", "esercizi": [] },
+        { "nome": "Andature", "nota": "1x10mt ciascuna · recupero: corsa per tornare", "esercizi": [
+          { "nome": "Lateral Shuffle", "serie": "1x10mt", "rec": "" },
+          { "nome": "Lateral Power Shuffle", "serie": "1x10mt", "rec": "" },
+          { "nome": "Crossover", "serie": "1x10mt", "rec": "" },
+          { "nome": "Power Crossover", "serie": "1x10mt", "rec": "" },
+          { "nome": "Doppio impulso laterale", "serie": "1x10mt", "rec": "" } ] },
+        { "nome": "Run", "esercizi": [
+          { "nome": "Croce: in stile T test, ma invece di fare una T fate una croce", "serie": "3x3 max intensità", "rec": "1-2m" } ] }
+      ]
+    }
+  ]
+}
+;
   // orari e luoghi degli allenamenti per giorno della settimana (1 = lunedì, 2 = martedì, 4 = giovedì)
   const ORARI = { 1: '19:30–21:30 · Battiferro', 2: '19:30–21:30 · Battiferro', 4: '21:00–23:00 · CUSB' };
   const TIPI = {
@@ -311,6 +438,41 @@
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
+  // ===== PALESTRA =====
+  let schedaScelta = PALESTRA.schede[0].id;
+  function disegnaPalestra() {
+    document.getElementById('schede-nav').innerHTML = PALESTRA.schede.map(sc =>
+      `<button data-scheda="${sc.id}" aria-pressed="${sc.id === schedaScelta}">${sc.breve}</button>`).join('');
+    const sc = PALESTRA.schede.find(x => x.id === schedaScelta);
+    const luogo = sc.luogo === 'campo'
+      ? '<span class="luogo" style="--c:var(--all);--bg:var(--all-bg)">In campo</span>'
+      : '<span class="luogo" style="--c:var(--naz);--bg:var(--naz-bg)">In palestra</span>';
+    document.getElementById('scheda').innerHTML = `<article class="scheda">
+      <div class="scheda-testa"><h2>${sc.titolo}</h2>${luogo}</div>
+      ${sc.blocchi.map(b => `<div class="blocco"><h3>${b.nome}</h3>${b.nota ? `<div class="nota">${b.nota}</div>` : ''}
+        ${b.esercizi.map(e => `<div class="es"><span class="n">${e.nome}</span><span class="pill">${e.serie}</span>${e.rec ? `<span class="pill rec">${e.rec}</span>` : '<span></span>'}</div>`).join('')}
+      </div>`).join('')}</article>
+      <p class="palestra-piede">Programma in corso · aggiornato al ${PALESTRA.aggiornato}. Serie x ripetizioni, ⏱ = recupero.</p>`;
+  }
+  document.getElementById('schede-nav').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button'); if (!b) return;
+    schedaScelta = b.dataset.scheda; disegnaPalestra();
+  });
+
+  // ===== CAMBIO PAGINA (dall'indirizzo: #calendario oppure #palestra) =====
+  const SOTTOTITOLO = document.getElementById('sottotitolo').textContent;
+  function mostraPagina() {
+    const pag = location.hash === '#palestra' ? 'palestra' : 'calendario';
+    document.getElementById('pag-calendario').hidden = pag !== 'calendario';
+    document.getElementById('pag-palestra').hidden = pag !== 'palestra';
+    document.querySelectorAll('.pagine a').forEach(a => a.setAttribute('aria-selected', a.dataset.pagina === pag));
+    document.getElementById('titolo').innerHTML = pag === 'palestra' ? 'Palestra <em>Shout</em>' : 'Calendario <em>Shout</em> 2027';
+    document.getElementById('sottotitolo').textContent = pag === 'palestra' ? 'Schede di forza e preparazione atletica' : SOTTOTITOLO;
+  }
+  window.addEventListener('hashchange', mostraPagina);
+
+  disegnaPalestra();
+  mostraPagina();
   disegnaProssimo();
   disegna();
 </script>

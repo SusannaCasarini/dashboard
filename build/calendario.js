@@ -21,6 +21,7 @@
  *     dell'allenamento, l'orario "19-22" diventa "19:00–22:00";
  *   - "Pasquetta" o una casella uguale all'evento del weekend (es. "Elite", "EUC") → niente;
  *   - tutto il resto (nomi, "?", casella vuota) → allenamento. Non si pubblicano mai i nomi.
+ * Pagina Palestra: le schede sono in build/palestra.json (da aggiornare a mano quando cambia il programma).
  * L'inizio allenamenti e gli impegni dopo luglio (non presenti nel foglio) sono nella lista EXTRA qui sotto.
  *
  * Funzioni di Node/JavaScript usate:
@@ -127,6 +128,7 @@ const modello = fs.readFileSync(path.join(RADICE, 'modelli', 'calendario.html'),
 const pagina = modello
   .replace('__EVENTI__', JSON.stringify(eventi))
   .replace('__ALLENAMENTI__', JSON.stringify(allenamenti))
+  .replace('__PALESTRA__', fs.readFileSync(path.join(__dirname, 'palestra.json'), 'utf8'))
   .replace('__AGGIORNATO__', ora);
 fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
 fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
