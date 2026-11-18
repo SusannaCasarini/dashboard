@@ -56,6 +56,8 @@ function titolo(t) {
 }
 
 const eventi = [];
+const allenamenti = [];
+const INIZIO_ALLENAMENTI = '2027-01-11';
 let mese = -1;
 for (const r of righe) {
   const a = (r[0] || '').trim();
@@ -64,8 +66,18 @@ for (const r of righe) {
   const m = a.match(/^(\d+)-(\d+)$/);                  // riga di una settimana
   if (!m || mese < 0) continue;
   const testo = (r[5] || '').trim();
-  if (!testo) continue;
   const lunedi = new Date(ANNO, mese, Number(m[1]));
+  // allenamenti della settimana: [colonna, giorni dopo il lunedì]
+  for (const [col, dopo] of [[2, 0], [3, 1], [4, 3]]) {
+    const v = (r[col] || '').trim();
+    const giorno = iso(piu(lunedi, dopo));
+    if (giorno < INIZIO_ALLENAMENTI) continue;
+    if (/pasquetta/i.test(v)) continue;
+    const primaParola = v.split(/\s+/)[0].toLowerCase();
+    if (primaParola && testo.toLowerCase().startsWith(primaParola) && /[a-z]/.test(primaParola)) continue;
+    allenamenti.push({ data: giorno, tipo: /pod|pausa|corsa/i.test(v) ? 'pod' : 'allenamento' });
+  }
+  if (!testo) continue;
   const sabato = piu(lunedi, 5), domenica = piu(lunedi, 6), giovedi = piu(lunedi, 3);
   // il giovedì fa parte dell'evento se nella colonna E c'è la stessa parola (es. "Elite" / "Elite Invite")
   const gio = (r[4] || '').trim().split(/\s+/)[0].toLowerCase();
@@ -99,8 +111,10 @@ const ora = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', day: '
 const modello = fs.readFileSync(path.join(RADICE, 'modelli', 'calendario.html'), 'utf8');
 const pagina = modello
   .replace('__EVENTI__', JSON.stringify(eventi))
+  .replace('__ALLENAMENTI__', JSON.stringify(allenamenti))
   .replace('__AGGIORNATO__', ora);
 fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
 fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
-console.log(`Calendario generato: ${eventi.length} impegni`);
+console.log(`Calendario generato: ${eventi.length} impegni, ${allenamenti.length} giorni infrasettimanali`);
+console.log(' Pod/Pausa: ' + allenamenti.filter(a => a.tipo === 'pod').map(a => a.data).join(', '));
 for (const e of eventi) console.log(` ${e.inizio} → ${e.fine}  [${e.tipo}]  ${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`);

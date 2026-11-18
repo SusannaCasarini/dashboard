@@ -18,6 +18,8 @@
       --shout: #f87171;  --shout-bg: rgba(239,68,68,.24);
       --evento: #facc15; --evento-bg: rgba(250,204,21,.20);
       --festa: #9aa4b5;  --festa-bg: rgba(154,164,181,.14);
+      --all: #4ade80;    --all-bg: rgba(74,222,128,.14);
+      --pod: #c084fc;    --pod-bg: rgba(192,132,252,.18);
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -67,6 +69,19 @@
     .g.ev.dc { background: none; border: 2px dashed var(--c); }
     .g.oggi::after { content: ""; position: absolute; inset: -2px; border: 2px solid var(--testo); border-radius: 9px; }
     .g.passato { opacity: .35; }
+    .g[data-k] { cursor: pointer; }
+    .g.al { background: var(--bg); color: var(--c); font-weight: 600; }
+    .g.pod::before { content: "P"; position: absolute; top: 1px; right: 4px; font-size: 10px; font-weight: 800; color: var(--c); }
+    .g.scelto { outline: 2px solid var(--testo); outline-offset: 1px; }
+    .dettaglio { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--carta2); font-size: 14px;
+      border-left: 4px solid var(--c); }
+    .dettaglio b { color: var(--c); }
+    .legenda-all { display: flex; flex-wrap: wrap; gap: 6px 18px; background: var(--carta); border: 1px solid var(--bordo);
+      border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; color: var(--grigio); }
+    .legenda-all b { color: var(--testo); font-weight: 600; }
+    .legenda-all .q { display: inline-block; width: 18px; height: 18px; border-radius: 5px; vertical-align: -4px; margin-right: 6px;
+      background: var(--bg); border: 1px solid var(--c); position: relative; }
+    .legenda-all .q.p::after { content: "P"; position: absolute; top: -1px; right: 2px; font-size: 9px; font-weight: 800; color: var(--c); }
     .lista-mese { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--bordo); }
     .lista-mese:empty { display: none; }
     .vuoto { color: var(--grigio); font-size: 14px; margin: 10px 0 0; }
@@ -105,7 +120,7 @@
 <body>
 <div class="contenitore">
   <h1>Calendario <em>Shout</em> 2027</h1>
-  <div class="sotto">Impegni da gennaio a settembre · aggiornato al 17/11/2026</div>
+  <div class="sotto">Impegni da gennaio a settembre · aggiornato al 18/11/2026</div>
 
   <div id="prossimo"></div>
 
@@ -118,6 +133,11 @@
   </div>
 
   <div id="elenco" class="elenco"></div>
+  <div id="legenda-all" class="legenda-all" hidden>
+    <span><span class="q" style="--c:var(--all);--bg:var(--all-bg)"></span><b>Allenamenti</b> dall'11 gennaio: lun e mar 19:30–21:30 al Battiferro · gio 21:00–23:00 al CUSB</span>
+    <span><span class="q p" style="--c:var(--pod);--bg:var(--pod-bg)"></span><b>Pod / pausa</b></span>
+    <span>Tocca un giorno per i dettagli</span>
+  </div>
   <div id="mesi" class="mesi" hidden></div>
 
   <div class="piede">
@@ -127,17 +147,23 @@
 </div>
 
 <script>
-  const EVENTI = [{"daConfermare":false,"titolo":"Inizio allenamenti","tipo":"shout","inizio":"2027-01-11","fine":"2027-01-11"},{"titolo":"Tryouts Shout","tipo":"shout","inizio":"2027-01-23","fine":"2027-01-24","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-01-30","fine":"2027-01-30","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-02-13","fine":"2027-02-14","daConfermare":false},{"titolo":"Coppa Shout","tipo":"evento","inizio":"2027-02-20","fine":"2027-02-21","daConfermare":true},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-02-27","fine":"2027-02-28","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-03-13","fine":"2027-03-14","daConfermare":false},{"titolo":"Pasqua e Pasquetta","tipo":"festa","inizio":"2027-03-28","fine":"2027-03-29","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-04-03","fine":"2027-04-04","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-10","fine":"2027-04-10","daConfermare":false},{"titolo":"Test Match","tipo":"nazionale","inizio":"2027-04-17","fine":"2027-04-18","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-24","fine":"2027-04-24","daConfermare":false},{"titolo":"Grenoble","tipo":"evento","inizio":"2027-05-01","fine":"2027-05-02","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-05-15","fine":"2027-05-16","daConfermare":true},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-05-29","fine":"2027-05-29","daConfermare":false},{"titolo":"Elite Invite","tipo":"evento","inizio":"2027-06-03","fine":"2027-06-06","daConfermare":false},{"titolo":"Finali CIU","tipo":"evento","inizio":"2027-06-12","fine":"2027-06-13","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-19","fine":"2027-06-20","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-26","fine":"2027-06-27","daConfermare":false},{"titolo":"EUC · Vichy","tipo":"nazionale","inizio":"2027-07-01","fine":"2027-07-10","daConfermare":false},{"daConfermare":false,"titolo":"Raduno Shout","tipo":"shout","inizio":"2027-09-11","fine":"2027-09-12"},{"daConfermare":false,"titolo":"Champions","tipo":"evento","inizio":"2027-09-24","fine":"2027-09-26"}];
+  const EVENTI = [{"daConfermare":false,"titolo":"Inizio allenamenti","tipo":"shout","inizio":"2027-01-11","fine":"2027-01-11"},{"titolo":"Tryouts Shout","tipo":"shout","inizio":"2027-01-23","fine":"2027-01-24","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-01-30","fine":"2027-01-30","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-02-13","fine":"2027-02-14","daConfermare":false},{"titolo":"Coppa Shout","tipo":"evento","inizio":"2027-02-20","fine":"2027-02-21","daConfermare":true},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-02-27","fine":"2027-02-28","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-03-13","fine":"2027-03-14","daConfermare":false},{"titolo":"Pasqua e Pasquetta","tipo":"festa","inizio":"2027-03-28","fine":"2027-03-29","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-04-03","fine":"2027-04-04","daConfermare":false},{"titolo":"Test Match","tipo":"nazionale","inizio":"2027-04-17","fine":"2027-04-18","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-04-24","fine":"2027-04-24","daConfermare":false},{"titolo":"Grenoble","tipo":"evento","inizio":"2027-05-01","fine":"2027-05-02","daConfermare":false},{"titolo":"Tappa CIU","tipo":"evento","inizio":"2027-05-15","fine":"2027-05-16","daConfermare":true},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-05-29","fine":"2027-05-29","daConfermare":false},{"titolo":"Elite Invite","tipo":"evento","inizio":"2027-06-03","fine":"2027-06-06","daConfermare":false},{"titolo":"Finali CIU","tipo":"evento","inizio":"2027-06-12","fine":"2027-06-13","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-19","fine":"2027-06-20","daConfermare":false},{"titolo":"Raduno Nazionale","tipo":"nazionale","inizio":"2027-06-26","fine":"2027-06-27","daConfermare":false},{"titolo":"EUC · Vichy","tipo":"nazionale","inizio":"2027-07-01","fine":"2027-07-10","daConfermare":false},{"daConfermare":false,"titolo":"Raduno Shout","tipo":"shout","inizio":"2027-09-11","fine":"2027-09-12"},{"daConfermare":false,"titolo":"Champions","tipo":"evento","inizio":"2027-09-24","fine":"2027-09-26"}];
+  const ALLENAMENTI = [{"data":"2027-01-11","tipo":"allenamento"},{"data":"2027-01-12","tipo":"allenamento"},{"data":"2027-01-14","tipo":"allenamento"},{"data":"2027-01-18","tipo":"allenamento"},{"data":"2027-01-19","tipo":"allenamento"},{"data":"2027-01-21","tipo":"allenamento"},{"data":"2027-01-25","tipo":"allenamento"},{"data":"2027-01-26","tipo":"allenamento"},{"data":"2027-01-28","tipo":"allenamento"},{"data":"2027-02-01","tipo":"allenamento"},{"data":"2027-02-02","tipo":"allenamento"},{"data":"2027-02-04","tipo":"allenamento"},{"data":"2027-02-08","tipo":"allenamento"},{"data":"2027-02-09","tipo":"allenamento"},{"data":"2027-02-11","tipo":"allenamento"},{"data":"2027-02-15","tipo":"pod"},{"data":"2027-02-16","tipo":"allenamento"},{"data":"2027-02-18","tipo":"allenamento"},{"data":"2027-02-22","tipo":"pod"},{"data":"2027-02-23","tipo":"allenamento"},{"data":"2027-02-25","tipo":"allenamento"},{"data":"2027-03-01","tipo":"pod"},{"data":"2027-03-02","tipo":"allenamento"},{"data":"2027-03-04","tipo":"allenamento"},{"data":"2027-03-08","tipo":"allenamento"},{"data":"2027-03-09","tipo":"allenamento"},{"data":"2027-03-11","tipo":"allenamento"},{"data":"2027-03-15","tipo":"pod"},{"data":"2027-03-16","tipo":"allenamento"},{"data":"2027-03-18","tipo":"allenamento"},{"data":"2027-03-22","tipo":"allenamento"},{"data":"2027-03-23","tipo":"allenamento"},{"data":"2027-03-25","tipo":"allenamento"},{"data":"2027-03-30","tipo":"pod"},{"data":"2027-04-01","tipo":"allenamento"},{"data":"2027-04-05","tipo":"allenamento"},{"data":"2027-04-06","tipo":"allenamento"},{"data":"2027-04-08","tipo":"allenamento"},{"data":"2027-04-12","tipo":"allenamento"},{"data":"2027-04-13","tipo":"allenamento"},{"data":"2027-04-15","tipo":"allenamento"},{"data":"2027-04-19","tipo":"pod"},{"data":"2027-04-20","tipo":"allenamento"},{"data":"2027-04-22","tipo":"allenamento"},{"data":"2027-04-26","tipo":"allenamento"},{"data":"2027-04-27","tipo":"allenamento"},{"data":"2027-04-29","tipo":"allenamento"},{"data":"2027-05-03","tipo":"pod"},{"data":"2027-05-04","tipo":"allenamento"},{"data":"2027-05-06","tipo":"allenamento"},{"data":"2027-05-10","tipo":"allenamento"},{"data":"2027-05-11","tipo":"allenamento"},{"data":"2027-05-13","tipo":"allenamento"},{"data":"2027-05-17","tipo":"allenamento"},{"data":"2027-05-18","tipo":"allenamento"},{"data":"2027-05-20","tipo":"allenamento"},{"data":"2027-05-24","tipo":"allenamento"},{"data":"2027-05-25","tipo":"allenamento"},{"data":"2027-05-27","tipo":"allenamento"},{"data":"2027-05-31","tipo":"allenamento"},{"data":"2027-06-01","tipo":"allenamento"},{"data":"2027-06-07","tipo":"pod"},{"data":"2027-06-08","tipo":"allenamento"},{"data":"2027-06-10","tipo":"allenamento"},{"data":"2027-06-14","tipo":"allenamento"},{"data":"2027-06-15","tipo":"allenamento"},{"data":"2027-06-17","tipo":"allenamento"},{"data":"2027-06-21","tipo":"allenamento"},{"data":"2027-06-22","tipo":"allenamento"},{"data":"2027-06-24","tipo":"allenamento"},{"data":"2027-06-28","tipo":"allenamento"},{"data":"2027-06-29","tipo":"allenamento"}];
+  // orari e luoghi degli allenamenti per giorno della settimana (1 = lunedì, 2 = martedì, 4 = giovedì)
+  const ORARI = { 1: '19:30–21:30 · Battiferro', 2: '19:30–21:30 · Battiferro', 4: '21:00–23:00 · CUSB' };
   const TIPI = {
     nazionale: { nome: 'Nazionale', c: 'var(--naz)', bg: 'var(--naz-bg)' },
     shout:     { nome: 'Shout',     c: 'var(--shout)', bg: 'var(--shout-bg)' },
     evento:    { nome: 'Eventi e tornei', c: 'var(--evento)', bg: 'var(--evento-bg)' },
     festa:     { nome: 'Festività', c: 'var(--festa)', bg: 'var(--festa-bg)' },
+    allenamento: { nome: 'Allenamenti', c: 'var(--all)', bg: 'var(--all-bg)', solo: 'mesi' },
+    pod:       { nome: 'Pod / pausa', c: 'var(--pod)', bg: 'var(--pod-bg)', solo: 'mesi' },
   };
   const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
   const GS = ['L','M','M','G','V','S','D'];
   const GIORNI = ['dom','lun','mar','mer','gio','ven','sab'];
-  const attivi = new Set(['nazionale','shout','evento','festa']);
+  const attivi = new Set(['nazionale','shout','evento','festa','allenamento','pod']);
+  let vista = 'elenco';
 
   const data = (s) => { const [a,m,g] = s.split('-').map(Number); return new Date(a, m - 1, g); };
   const oggi = new Date(); oggi.setHours(0,0,0,0);
@@ -181,7 +207,7 @@
 
   function disegnaFiltri() {
     document.getElementById('filtri').innerHTML = Object.entries(TIPI)
-      .filter(([k]) => EVENTI.some(e => e.tipo === k))
+      .filter(([k, t]) => (EVENTI.some(e => e.tipo === k) && !t.solo) || (t.solo === vista && ALLENAMENTI.some(a => a.tipo === k)))
       .map(([k, t]) => `<button class="chip" data-tipo="${k}" aria-pressed="${attivi.has(k)}" style="--c:${t.c}">
         <span class="pallino"></span>${t.nome}</button>`).join('');
   }
@@ -191,6 +217,8 @@
     // giorno → evento
     const perGiorno = {};
     for (const e of ev) for (let d = data(e.inizio); iso(d) <= e.fine; d.setDate(d.getDate() + 1)) perGiorno[iso(d)] ??= e;
+    const allen = {};
+    for (const a of ALLENAMENTI) if (attivi.has(a.tipo)) allen[a.data] = a;
     let html = '';
     for (let m = 0; m <= 8; m++) {
       const primo = new Date(2027, m, 1), ultimo = new Date(2027, m + 1, 0).getDate();
@@ -198,15 +226,17 @@
       let celle = GS.map((g, i) => `<div class="gs${i >= 5 ? ' we' : ''}">${g}</div>`).join('');
       celle += '<div></div>'.repeat(vuote);
       for (let g = 1; g <= ultimo; g++) {
-        const d = new Date(2027, m, g), k = iso(d), e = perGiorno[k];
+        const d = new Date(2027, m, g), k = iso(d), e = perGiorno[k], a = e ? null : allen[k];
         const we = d.getDay() === 0 || d.getDay() === 6;
-        const cls = ['g', we && 'we', e && 'ev', e && e.daConfermare && 'dc', k === OGGI && 'oggi', k < OGGI && 'passato'].filter(Boolean).join(' ');
-        const st = e ? ` style="--c:${TIPI[e.tipo].c};--bg:${TIPI[e.tipo].bg}" title="${e.titolo}"` : '';
+        const cls = ['g', we && 'we', e && 'ev', e && e.daConfermare && 'dc', a && 'al', a && a.tipo === 'pod' && 'pod',
+          k === OGGI && 'oggi', k < OGGI && 'passato'].filter(Boolean).join(' ');
+        const t = e ? TIPI[e.tipo] : a ? TIPI[a.tipo] : null;
+        const st = t ? ` data-k="${k}" style="--c:${t.c};--bg:${t.bg}"` : '';
         celle += `<div class="${cls}"${st}>${g}</div>`;
       }
       const delMese = ev.filter(e => data(e.inizio).getMonth() === m || data(e.fine).getMonth() === m);
-      html += `<section class="mese"><h2>${MESI[m]}</h2><div class="griglia">${celle}</div>
-        ${delMese.length ? `<ul class="lista-mese">${delMese.map(riga).join('')}</ul>` : '<p class="vuoto">Nessun impegno nel weekend</p>'}</section>`;
+      html += `<section class="mese"><h2>${MESI[m]}</h2><div class="griglia">${celle}</div><div class="dettaglio" hidden></div>
+        ${delMese.length ? `<ul class="lista-mese">${delMese.map(riga).join('')}</ul>` : '<p class="vuoto">Nessun impegno</p>'}</section>`;
     }
     document.getElementById('mesi').innerHTML = html;
   }
@@ -231,9 +261,29 @@
   });
   document.querySelectorAll('.vista button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.vista button').forEach(x => x.setAttribute('aria-pressed', x === b));
-    document.getElementById('mesi').hidden = b.dataset.vista !== 'mesi';
-    document.getElementById('elenco').hidden = b.dataset.vista !== 'elenco';
+    vista = b.dataset.vista;
+    document.getElementById('mesi').hidden = vista !== 'mesi';
+    document.getElementById('legenda-all').hidden = vista !== 'mesi';
+    document.getElementById('elenco').hidden = vista !== 'elenco';
+    disegnaFiltri();
   }));
+
+  // Tocco su un giorno colorato: mostra cosa c'è quel giorno sotto la griglia del mese
+  document.getElementById('mesi').addEventListener('click', (ev) => {
+    const c = ev.target.closest('.g[data-k]'); if (!c) return;
+    const k = c.dataset.k, d = data(k), box = c.closest('.mese').querySelector('.dettaglio');
+    document.querySelectorAll('.g.scelto').forEach(x => x.classList.remove('scelto'));
+    const e = visibili().find(x => x.inizio <= k && k <= x.fine);
+    const a = ALLENAMENTI.find(x => x.data === k);
+    let testo, t;
+    if (e) { t = TIPI[e.tipo]; testo = `<b>${e.titolo}</b>${e.daConfermare ? ' · da confermare' : ''} · ${t.nome}`; }
+    else if (a) { t = TIPI[a.tipo]; testo = a.tipo === 'pod' ? `<b>Pod / pausa</b>` : `<b>Allenamento</b> ${ORARI[d.getDay()] || ''}`; }
+    else return;
+    c.classList.add('scelto');
+    box.style.setProperty('--c', t.c);
+    box.innerHTML = `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} · ${testo}`;
+    box.hidden = false;
+  });
 
   // File .ics con gli impegni visibili, da aprire con Google Calendar / Calendario iPhone
   document.getElementById('ics').addEventListener('click', () => {
