@@ -92,18 +92,24 @@
     .rettangoli { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
     .rett { border-radius: 7px; padding: 6px 4px 5px; text-align: center; min-height: 48px;
       display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; }
-    .rett .voce { font-size: 13px; letter-spacing: -.01em; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rett .voce { font-size: 13px; letter-spacing: -.01em; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
     .rett .stato { font-size: 11.5px; font-weight: 600; line-height: 1.15; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    @media (max-width: 420px) {
+    /* Telefono: su due file, sopra Quota e Modulo, sotto i due certificati e l'Advanced
+       (griglia da 6 colonne: i primi due riquadri ne occupano 3, gli altri 2) */
+    @media (max-width: 520px) {
       .giocatore { padding: 12px 10px; }
-      .rettangoli { gap: 4px; }
-      .rett { padding: 6px 2px 5px; }
-      .rett .voce { font-size: 11.5px; }
-      .rett .stato { font-size: 11px; white-space: normal; }
+      .rettangoli { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
+      .rett { grid-column: span 2; padding: 6px 4px 5px; }
+      .rett:nth-child(-n+2) { grid-column: span 3; }
+      .rett .voce { font-size: 12.5px; overflow-wrap: normal; }
+      .rett .stato { font-size: 12px; white-space: normal; }
     }
-    .rett.verde { background: #22c55e; color: #052e14; }
-    .rett.giallo { background: #facc15; color: #3b2a00; }
-    .rett.rosso { background: #ef4444; color: #fff; }
+    .rett { border: 1.5px solid transparent; }
+    .rett.verde { background: rgba(74,222,128,.13); border-color: rgba(74,222,128,.35); color: #86efac; }
+    .rett.giallo { background: rgba(250,204,21,.13); border-color: rgba(250,204,21,.4); color: #fde68a; }
+    .rett.rosso { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.4); color: #fca5a5; }
+    /* Quota non ancora pagata ma con la scadenza ancora da arrivare: solo contorno giallo */
+    .rett.attesa { background: transparent; border-color: #facc15; color: #fde68a; }
 
     /* Note sul modulo, sotto i rettangolini */
     .note { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -114,7 +120,7 @@
     /* Legenda dei colori sotto i contatori */
     .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--grigio); margin: -6px 0 14px; }
     .legenda span { display: inline-flex; align-items: center; gap: 6px; }
-    .legenda i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; }
+    .legenda i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; box-sizing: border-box; }
 
     .messaggio { text-align: center; color: var(--grigio); padding: 40px 10px; }
     .errore { color: var(--rosso); }
@@ -143,9 +149,10 @@
 
     <div class="contatori" id="contatori"></div>
     <div class="legenda" aria-label="Legenda colori">
-      <span><i style="background:#22c55e"></i>✓ a posto</span>
-      <span><i style="background:#ef4444"></i>✗ da sistemare</span>
-      <span><i style="background:#facc15"></i>! Advanced in scadenza entro un mese</span>
+      <span><i style="background:rgba(74,222,128,.35);border:1px solid #86efac"></i>✓ a posto</span>
+      <span><i style="background:rgba(248,113,113,.35);border:1px solid #fca5a5"></i>✗ da sistemare</span>
+      <span><i style="background:rgba(250,204,21,.35);border:1px solid #fde68a"></i>! Advanced in scadenza entro un mese</span>
+      <span><i style="border:1.5px solid #facc15"></i>○ quota da pagare, c'è ancora tempo</span>
     </div>
     <div class="giocatori" id="giocatori">
       <div class="messaggio">Sto leggendo i dati…</div>
@@ -159,7 +166,7 @@
     let tutti = [];
 
     // Icona per ogni livello di colore
-    const ICONE = { verde: '✓', giallo: '!', rosso: '✗' };
+    const ICONE = { verde: '✓', giallo: '!', rosso: '✗', attesa: '○' };
 
     /*
       datiArrivati(dati)
@@ -342,8 +349,8 @@
       fila.append(
         rettangolo('Quota', g.quota.breve, g.quota.livello, g.quota.testo),
         rettangolo('Modulo', g.modulo ? 'Firmato' : 'Manca', g.modulo ? 'verde' : 'rosso', g.modulo ? 'Modulo firmato' : 'Modulo mancante'),
-        rettangolo('Cartaceo', g.cartaceo ? 'Sì' : 'Manca', g.cartaceo ? 'verde' : 'rosso', g.cartaceo ? 'Certificato cartaceo consegnato' : 'Certificato cartaceo mancante'),
-        rettangolo('Golee', g.golee ? 'Sì' : 'Manca', g.golee ? 'verde' : 'rosso', g.golee ? 'Certificato caricato su Golee' : 'Certificato non caricato su Golee'),
+        rettangolo('Certificato Cartaceo', g.cartaceo ? 'Sì' : 'Manca', g.cartaceo ? 'verde' : 'rosso', g.cartaceo ? 'Certificato cartaceo consegnato' : 'Certificato cartaceo mancante'),
+        rettangolo('Certificato Golee', g.golee ? 'Sì' : 'Manca', g.golee ? 'verde' : 'rosso', g.golee ? 'Certificato caricato su Golee' : 'Certificato non caricato su Golee'),
         rettangolo('Advanced', g.advanced.breve, g.advanced.livello, 'Advanced: ' + g.advanced.testo)
       );
       scheda.appendChild(fila);
@@ -408,14 +415,16 @@
       if (giorni <= 30) return { testo: 'Scade il ' + data, breve: corta, livello: 'giallo' };
       return { testo: 'Valido fino al ' + data, breve: corta, livello: 'verde' };
     }
-    // Quota: verde se è a posto (pagata, prima rata pagata, niente da pagare), rossa in tutti gli altri casi
-    function statoQuota(codice) {
+    // Quota: verde se è a posto (pagata, prima rata pagata, niente da pagare); solo contorno giallo se
+    // non è pagata ma la scadenza non è ancora passata; rossa negli altri casi
+    function statoQuota(codice, oggi) {
       if (codice === 'pagata') return { testo: 'Pagata', breve: 'Pagata', livello: 'verde' };
       if (codice === 'prima_rata') return { testo: 'Prima rata pagata', breve: '1ª rata', livello: 'verde' };
       if (codice === 'nulla') return { testo: 'Niente da pagare', breve: 'Nulla', livello: 'verde' };
       if (codice === 'indeciso') return { testo: 'Indeciso', breve: 'Indeciso', livello: 'rosso' };
       if (codice === 'da_verificare') return { testo: 'Da verificare', breve: 'Verificare', livello: 'rosso' };
-      if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', breve: 'Entro 31/01', livello: 'rosso' };
+      // Prime squadre: finché il 31/01 non è passato solo contorno giallo, dopo diventa rossa
+      if (codice === 'da_pagare_31_01') return { testo: 'Da pagare entro 31/01', breve: 'Entro 31/01', livello: oggi <= new Date(2027, 0, 31) ? 'attesa' : 'rosso' };
       return { testo: 'Da pagare', breve: 'Da pagare', livello: 'rosso' };
     }
 
@@ -429,7 +438,7 @@
     // Avvio: i dati sono già dentro la pagina; trasformo i codici in testi e colori
     const DATI = /*__DATI__*/null;
     const OGGI = new Date(); OGGI.setHours(0, 0, 0, 0);
-    DATI.giocatori.forEach((g) => { g.quota = statoQuota(g.quota); g.advanced = statoAdvanced(g.advanced, OGGI); });
+    DATI.giocatori.forEach((g) => { g.quota = statoQuota(g.quota, OGGI); g.advanced = statoAdvanced(g.advanced, OGGI); });
     datiArrivati(DATI);
   </script>
 </body>
