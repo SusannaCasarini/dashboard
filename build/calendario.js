@@ -14,6 +14,13 @@
  *   - "Pasqua"                          → festività (grigio)
  *   - tutto il resto (CIU, Coppa, Grenoble, Elite Invite…) → evento/torneo (giallo)
  *   - un "?" nel testo                  → "da confermare"
+ * Allenamenti infrasettimanali (colonne C lunedì, D martedì, E giovedì), dall'11/01:
+ *   - orari e luoghi sono nel modello (lun e mar 19:30–21:30 Battiferro, gio 21–23 CUSB);
+ *   - "Pod", "Pausa", "Lezione di corsa" → tipo "pod" (viola con la P);
+ *   - "Incontro …" (es. "Incontro Formativo Online 19-22") → evento della Nazionale al posto
+ *     dell'allenamento, l'orario "19-22" diventa "19:00–22:00";
+ *   - "Pasquetta" o una casella uguale all'evento del weekend (es. "Elite", "EUC") → niente;
+ *   - tutto il resto (nomi, "?", casella vuota) → allenamento. Non si pubblicano mai i nomi.
  * L'inizio allenamenti e gli impegni dopo luglio (non presenti nel foglio) sono nella lista EXTRA qui sotto.
  *
  * Funzioni di Node/JavaScript usate:
@@ -73,6 +80,14 @@ for (const r of righe) {
     const giorno = iso(piu(lunedi, dopo));
     if (giorno < INIZIO_ALLENAMENTI) continue;
     if (/pasquetta/i.test(v)) continue;
+    if (/incontro/i.test(v)) {
+      const o = v.match(/(\d{1,2})(?:[.:](\d{2}))?\s*-\s*(\d{1,2})(?:[.:](\d{2}))?/);
+      const orario = o ? `${o[1]}:${o[2] || '00'}–${o[3]}:${o[4] || '00'}` : '';
+      const nome = v.replace(o ? o[0] : '', '').replace(/\?+/g, '').trim();
+      eventi.push({ titolo: nome.charAt(0) + nome.slice(1).toLowerCase(), tipo: 'nazionale', inizio: giorno, fine: giorno,
+        daConfermare: v.includes('?'), orario });
+      continue;
+    }
     const primaParola = v.split(/\s+/)[0].toLowerCase();
     if (primaParola && testo.toLowerCase().startsWith(primaParola) && /[a-z]/.test(primaParola)) continue;
     allenamenti.push({ data: giorno, tipo: /pod|pausa|corsa/i.test(v) ? 'pod' : 'allenamento' });
@@ -115,6 +130,7 @@ const pagina = modello
   .replace('__AGGIORNATO__', ora);
 fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
 fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
+eventi.sort((x, y) => x.inizio.localeCompare(y.inizio));
 console.log(`Calendario generato: ${eventi.length} impegni, ${allenamenti.length} giorni infrasettimanali`);
 console.log(' Pod/Pausa: ' + allenamenti.filter(a => a.tipo === 'pod').map(a => a.data).join(', '));
 for (const e of eventi) console.log(` ${e.inizio} → ${e.fine}  [${e.tipo}]  ${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`);

@@ -95,7 +95,7 @@
     .ev-riga { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--bordo); }
     .ev-riga:last-child { border-bottom: 0; }
     .ev-riga .barra { width: 5px; align-self: stretch; border-radius: 3px; background: var(--c); flex: none; }
-    .ev-riga .quando { min-width: 92px; font-size: 14px; color: var(--grigio); }
+    .ev-riga .quando { min-width: 92px; white-space: nowrap; font-size: 14px; color: var(--grigio); }
     .ev-riga .quando b { display: block; color: var(--testo); font-size: 15px; }
     .ev-riga .cosa { font-weight: 600; font-size: 16px; }
     .ev-riga .tipo { font-size: 13px; color: var(--c); font-weight: 600; }
@@ -199,7 +199,7 @@
     const giorni = e.inizio === e.fine ? GIORNI[a.getDay()] : `${GIORNI[a.getDay()]}–${GIORNI[data(e.fine).getDay()]}`;
     return `<li class="ev-riga${passato(e) ? ' passato' : ''}" style="--c:${t.c}">
       <span class="barra"></span>
-      <span class="quando"><b>${e.inizio === e.fine ? `${a.getDate()} ${MESI[a.getMonth()].slice(0,3)}` : quando(e)}</b>${giorni}</span>
+      <span class="quando"><b>${e.inizio === e.fine ? `${a.getDate()} ${MESI[a.getMonth()].slice(0,3)}` : quando(e)}</b>${giorni}${e.orario ? '<br>' + e.orario : ''}</span>
       <span><div class="cosa">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
       <div class="tipo">${t.nome}</div></span></li>`;
   }
@@ -213,7 +213,7 @@
     box.innerHTML = `<div class="prossimo" style="--c:${t.c}">
       <div><div class="eti">Prossimo impegno · ${t.nome}</div>
       <div class="tit">${e.titolo}${e.daConfermare ? '<span class="tag">da confermare</span>' : ''}</div>
-      <div class="dt">${quando(e, true)}</div></div>
+      <div class="dt">${quando(e, true)}${e.orario ? ' · ' + e.orario : ''}</div></div>
       <div class="tra">${n <= 0 ? '<b>oggi</b>' : `<b>${n}</b><span>${n === 1 ? 'giorno' : 'giorni'}</span>`}</div></div>`;
   }
 
@@ -288,7 +288,7 @@
     const e = visibili().find(x => x.inizio <= k && k <= x.fine);
     const a = ALLENAMENTI.find(x => x.data === k);
     let testo, t;
-    if (e) { t = TIPI[e.tipo]; testo = `<b>${e.titolo}</b>${e.daConfermare ? ' · da confermare' : ''} · ${t.nome}`; }
+    if (e) { t = TIPI[e.tipo]; testo = `<b>${e.titolo}</b>${e.orario ? ' ' + e.orario : ''}${e.daConfermare ? ' · da confermare' : ''} · ${t.nome}`; }
     else if (a) { t = TIPI[a.tipo]; testo = a.tipo === 'pod' ? `<b>Pod / pausa</b>` : `<b>Allenamento</b> ${ORARI[d.getDay()] || ''}`; }
     else return;
     c.classList.add('scelto');
@@ -304,7 +304,7 @@
     const righe = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//BFD//Calendario Shout 2027//IT','CALSCALE:GREGORIAN'];
     visibili().forEach((e, i) => righe.push('BEGIN:VEVENT', `UID:shout2027-${i}-${f(e.inizio)}@bfd`,
       `DTSTAMP:${f(OGGI)}T000000Z`, `DTSTART;VALUE=DATE:${f(e.inizio)}`, `DTEND;VALUE=DATE:${fineEsclusa(e.fine)}`,
-      `SUMMARY:${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`, `CATEGORIES:${TIPI[e.tipo].nome}`, 'END:VEVENT'));
+      `SUMMARY:${e.titolo}${e.orario ? ' ' + e.orario : ''}${e.daConfermare ? ' (da confermare)' : ''}`, `CATEGORIES:${TIPI[e.tipo].nome}`, 'END:VEVENT'));
     righe.push('END:VCALENDAR');
     const url = URL.createObjectURL(new Blob([righe.join('\r\n')], { type: 'text/calendar' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: 'calendario-shout-2027.ics' });
