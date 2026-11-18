@@ -826,8 +826,10 @@
 
   // ===== PESI E ANDAMENTO =====
   // I pesi stanno in un foglio Google: la pagina li chiede a uno script Google (PESI_URL) con nome + PIN.
-  const PESI_URL = "";
+  const PESI_URL = "https://script.google.com/macros/s/AKfycbzd-plSnxB-7jdxoO7dLegX6KW9Z6jfSNtOhhXSAYztwTlsgnx7_kkth_rn3M0M_O33/exec";
   const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // "ARIANNA A." → "Arianna A." (solo come si vede; al foglio si manda il nome originale)
+  const nomeBello = (t) => String(t).toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
   const kgTesto = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
   const dataBreve = (s) => { const d = data(s); return `${d.getDate()} ${MESI[d.getMonth()].slice(0, 3)}${d.getFullYear() !== oggi.getFullYear() ? ' ' + d.getFullYear() : ''}`; };
   // memoria del telefono (nome + PIN), così si inserisce una volta sola
@@ -868,7 +870,7 @@
     const sel = box.querySelector('#acc-nome'), msg = box.querySelector('#acc-msg'), pin = box.querySelector('#acc-pin');
     try {
       if (!elencoAtlete) { const r = await (await fetch(PESI_URL + '?azione=atlete')).json(); elencoAtlete = r.atlete || []; }
-      sel.innerHTML = '<option value="">Scegli il tuo nome</option>' + elencoAtlete.map(n => `<option>${esc(n)}</option>`).join('');
+      sel.innerHTML = '<option value="">Scegli il tuo nome</option>' + elencoAtlete.map(n => `<option value="${esc(n)}">${esc(nomeBello(n))}</option>`).join('');
     } catch (e) { msg.textContent = 'Non riesco a collegarmi. Controlla la connessione e ricarica la pagina.'; }
     sel.onchange = pin.oninput = () => msg.textContent = '';
     box.querySelector('#acc-entra').onclick = async (ev) => {
@@ -883,7 +885,7 @@
       } catch (e) { msg.textContent = e.message || 'Errore di collegamento'; ev.target.disabled = false; ev.target.textContent = 'Entra'; }
     };
   }
-  const intestazione = () => `<div class="ciao"><span>Ciao <b>${esc(utente.atleta)}</b></span><button class="link" data-esci>Non sei tu? Esci</button></div>`;
+  const intestazione = () => `<div class="ciao"><span>Ciao <b>${esc(nomeBello(utente.atleta))}</b></span><button class="link" data-esci>Non sei tu? Esci</button></div>`;
 
   async function preparaUtente(box) {
     if (!utente) { disegnaAccesso(box); return false; }
