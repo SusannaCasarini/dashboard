@@ -1,80 +1,374 @@
 {
-  "aggiornato": "18/11/2026",
-  "schede": [
+ "aggiornato": "18/11/2026",
+ "schede": [
+  {
+   "id": "pale1",
+   "breve": "Palestra 1",
+   "titolo": "Palestra · Giorno 1",
+   "luogo": "palestra",
+   "blocchi": [
     {
-      "id": "pale1", "breve": "Palestra 1", "titolo": "Palestra · Giorno 1", "luogo": "palestra",
-      "blocchi": [
-        { "nome": "Mobilità", "nota": "Quello che vi aiuta di più", "esercizi": [] },
-        { "nome": "Core", "esercizi": [
-          { "nome": "Heavy March 2KB", "serie": "2x20mt", "rec": "" },
-          { "nome": "Pallof Press con elastico", "serie": "2x10+10", "rec": "" },
-          { "nome": "Dead Bug", "serie": "2x8+8", "rec": "" } ] },
-        { "nome": "Plyo", "esercizi": [
-          { "nome": "Pogo Jump", "serie": "3x10sec", "rec": "20s" },
-          { "nome": "Single Leg Pogo", "serie": "2x5+5sec", "rec": "10s" } ] },
-        { "nome": "Power", "esercizi": [
-          { "nome": "CMJ", "serie": "2x8", "rec": "1m" },
-          { "nome": "Single Leg CMJ", "serie": "2x4+4", "rec": "1m" } ] },
-        { "nome": "Strength", "esercizi": [
-          { "nome": "Affondi indietro manubri o bilanciere", "serie": "3x8+8", "rec": "1m" } ] },
-        { "nome": "Comp. e Acc.", "esercizi": [
-          { "nome": "Push Up (ev. zavorra per chi riesce)", "serie": "3x5-10", "rec": "1m" },
-          { "nome": "Hip Thrust bilanciere", "serie": "2x8-10", "rec": "1m" },
-          { "nome": "Rematore su panca 45°", "serie": "2x10", "rec": "1m" },
-          { "nome": "Face Pulls ai cavi", "serie": "3x10", "rec": "1m" } ] }
-      ]
+     "nome": "Mobilità",
+     "nota": "Quello che vi aiuta di più",
+     "esercizi": []
     },
     {
-      "id": "pale2", "breve": "Palestra 2", "titolo": "Palestra · Giorno 2", "luogo": "palestra",
-      "blocchi": [
-        { "nome": "Mobilità", "nota": "Quello che vi aiuta di più", "esercizi": [] },
-        { "nome": "Core", "esercizi": [
-          { "nome": "Heavy March", "serie": "2x20mt", "rec": "" },
-          { "nome": "Pallof Press", "serie": "2x10+10", "rec": "" },
-          { "nome": "Dead Bug", "serie": "2x8+8", "rec": "" } ] },
-        { "nome": "Plyo", "esercizi": [
-          { "nome": "Lateral line hops", "serie": "2x10s", "rec": "20s" },
-          { "nome": "Single Leg Lateral line hops", "serie": "2x5+5s", "rec": "10s" } ] },
-        { "nome": "Power", "esercizi": [
-          { "nome": "Drop Jump altezza 30cm", "serie": "2x8", "rec": "1m" },
-          { "nome": "Single Leg Drop Jump altezza 30cm", "serie": "2x4+4", "rec": "1m" } ] },
-        { "nome": "Strength", "esercizi": [
-          { "nome": "RDL Staggered con manubri o kettlebell", "serie": "3x8+8", "rec": "1m" } ] },
-        { "nome": "Comp. e Acc.", "esercizi": [
-          { "nome": "Spinte panca 80° alternate", "serie": "3x8-12", "rec": "1m" },
-          { "nome": "Leg Extension mono PESANTE", "serie": "2x6+6", "rec": "1m" },
-          { "nome": "Lat Machine presa neutra", "serie": "3x8", "rec": "1m" },
-          { "nome": "Push Down", "serie": "3x10", "rec": "1m" } ] }
-      ]
+     "nome": "Core",
+     "esercizi": [
+      {
+       "nome": "Heavy March 2KB",
+       "serie": "2x20mt",
+       "rec": "",
+       "chiave": "heavy-march",
+       "carico": true,
+       "notaPeso": "kg per kettlebell"
+      },
+      {
+       "nome": "Pallof Press con elastico",
+       "serie": "2x10+10",
+       "rec": "",
+       "chiave": "pallof-press"
+      },
+      {
+       "nome": "Dead Bug",
+       "serie": "2x8+8",
+       "rec": "",
+       "chiave": "dead-bug"
+      }
+     ]
     },
     {
-      "id": "prepa1", "breve": "Prepa 1", "titolo": "Prepa · Giorno 1", "luogo": "campo",
-      "blocchi": [
-        { "nome": "Warm Up", "nota": "Simil partita senza disco", "esercizi": [] },
-        { "nome": "Andature", "nota": "1x10mt ciascuna · recupero: corsa per tornare", "esercizi": [
-          { "nome": "A-Skip", "serie": "1x10mt", "rec": "" },
-          { "nome": "Calciata sotto", "serie": "1x10mt", "rec": "" },
-          { "nome": "B-Skip", "serie": "1x10mt", "rec": "" },
-          { "nome": "Calciata dietro", "serie": "1x10mt", "rec": "" },
-          { "nome": "Doppio appoggio", "serie": "1x10mt", "rec": "" },
-          { "nome": "Bounds gambe tese", "serie": "1x10mt", "rec": "" } ] },
-        { "nome": "Run", "esercizi": [
-          { "nome": "Tempo Run", "serie": "6x100mt in 18sec", "rec": "corsa lenta 100mt" } ] }
-      ]
+     "nome": "Plyo",
+     "esercizi": [
+      {
+       "nome": "Pogo Jump",
+       "serie": "3x10sec",
+       "rec": "20s",
+       "chiave": "pogo-jump"
+      },
+      {
+       "nome": "Single Leg Pogo",
+       "serie": "2x5+5sec",
+       "rec": "10s",
+       "chiave": "single-leg-pogo"
+      }
+     ]
     },
     {
-      "id": "prepa2", "breve": "Prepa 2", "titolo": "Prepa · Giorno 2", "luogo": "campo",
-      "blocchi": [
-        { "nome": "Warm Up", "nota": "Simil partita senza disco", "esercizi": [] },
-        { "nome": "Andature", "nota": "1x10mt ciascuna · recupero: corsa per tornare", "esercizi": [
-          { "nome": "Lateral Shuffle", "serie": "1x10mt", "rec": "" },
-          { "nome": "Lateral Power Shuffle", "serie": "1x10mt", "rec": "" },
-          { "nome": "Crossover", "serie": "1x10mt", "rec": "" },
-          { "nome": "Power Crossover", "serie": "1x10mt", "rec": "" },
-          { "nome": "Doppio impulso laterale", "serie": "1x10mt", "rec": "" } ] },
-        { "nome": "Run", "esercizi": [
-          { "nome": "Croce: in stile T test, ma invece di fare una T fate una croce", "serie": "3x3 max intensità", "rec": "1-2m" } ] }
-      ]
+     "nome": "Power",
+     "esercizi": [
+      {
+       "nome": "CMJ",
+       "serie": "2x8",
+       "rec": "1m",
+       "chiave": "cmj"
+      },
+      {
+       "nome": "Single Leg CMJ",
+       "serie": "2x4+4",
+       "rec": "1m",
+       "chiave": "single-leg-cmj"
+      }
+     ]
+    },
+    {
+     "nome": "Strength",
+     "esercizi": [
+      {
+       "nome": "Affondi indietro manubri o bilanciere",
+       "serie": "3x8+8",
+       "rec": "1m",
+       "chiave": "affondi-indietro",
+       "carico": true
+      }
+     ]
+    },
+    {
+     "nome": "Comp. e Acc.",
+     "esercizi": [
+      {
+       "nome": "Push Up (ev. zavorra per chi riesce)",
+       "serie": "3x5-10",
+       "rec": "1m",
+       "chiave": "push-up",
+       "carico": true
+      },
+      {
+       "nome": "Hip Thrust bilanciere",
+       "serie": "2x8-10",
+       "rec": "1m",
+       "chiave": "hip-thrust",
+       "carico": true
+      },
+      {
+       "nome": "Rematore su panca 45°",
+       "serie": "2x10",
+       "rec": "1m",
+       "chiave": "rematore-panca-45",
+       "carico": true
+      },
+      {
+       "nome": "Face Pulls ai cavi",
+       "serie": "3x10",
+       "rec": "1m",
+       "chiave": "face-pulls",
+       "carico": true
+      }
+     ]
     }
-  ]
+   ]
+  },
+  {
+   "id": "pale2",
+   "breve": "Palestra 2",
+   "titolo": "Palestra · Giorno 2",
+   "luogo": "palestra",
+   "blocchi": [
+    {
+     "nome": "Mobilità",
+     "nota": "Quello che vi aiuta di più",
+     "esercizi": []
+    },
+    {
+     "nome": "Core",
+     "esercizi": [
+      {
+       "nome": "Heavy March",
+       "serie": "2x20mt",
+       "rec": "",
+       "chiave": "heavy-march",
+       "carico": true,
+       "notaPeso": "kg per kettlebell"
+      },
+      {
+       "nome": "Pallof Press",
+       "serie": "2x10+10",
+       "rec": "",
+       "chiave": "pallof-press",
+       "carico": true,
+       "notaPeso": "se usi i cavi"
+      },
+      {
+       "nome": "Dead Bug",
+       "serie": "2x8+8",
+       "rec": "",
+       "chiave": "dead-bug"
+      }
+     ]
+    },
+    {
+     "nome": "Plyo",
+     "esercizi": [
+      {
+       "nome": "Lateral line hops",
+       "serie": "2x10s",
+       "rec": "20s",
+       "chiave": "lateral-line-hops"
+      },
+      {
+       "nome": "Single Leg Lateral line hops",
+       "serie": "2x5+5s",
+       "rec": "10s",
+       "chiave": "single-leg-lateral-line-hops"
+      }
+     ]
+    },
+    {
+     "nome": "Power",
+     "esercizi": [
+      {
+       "nome": "Drop Jump altezza 30cm",
+       "serie": "2x8",
+       "rec": "1m",
+       "chiave": "drop-jump-altezza-30cm"
+      },
+      {
+       "nome": "Single Leg Drop Jump altezza 30cm",
+       "serie": "2x4+4",
+       "rec": "1m",
+       "chiave": "single-leg-drop-jump-altezza-30cm"
+      }
+     ]
+    },
+    {
+     "nome": "Strength",
+     "esercizi": [
+      {
+       "nome": "RDL Staggered con manubri o kettlebell",
+       "serie": "3x8+8",
+       "rec": "1m",
+       "chiave": "rdl-staggered",
+       "carico": true,
+       "notaPeso": "kg per manubrio"
+      }
+     ]
+    },
+    {
+     "nome": "Comp. e Acc.",
+     "esercizi": [
+      {
+       "nome": "Spinte panca 80° alternate",
+       "serie": "3x8-12",
+       "rec": "1m",
+       "chiave": "spinte-panca-80",
+       "carico": true,
+       "notaPeso": "kg per manubrio"
+      },
+      {
+       "nome": "Leg Extension mono PESANTE",
+       "serie": "2x6+6",
+       "rec": "1m",
+       "chiave": "leg-extension-mono",
+       "carico": true
+      },
+      {
+       "nome": "Lat Machine presa neutra",
+       "serie": "3x8",
+       "rec": "1m",
+       "chiave": "lat-machine-neutra",
+       "carico": true
+      },
+      {
+       "nome": "Push Down",
+       "serie": "3x10",
+       "rec": "1m",
+       "chiave": "push-down",
+       "carico": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prepa1",
+   "breve": "Prepa 1",
+   "titolo": "Prepa · Giorno 1",
+   "luogo": "campo",
+   "blocchi": [
+    {
+     "nome": "Warm Up",
+     "nota": "Simil partita senza disco",
+     "esercizi": []
+    },
+    {
+     "nome": "Andature",
+     "nota": "1x10mt ciascuna · recupero: corsa per tornare",
+     "esercizi": [
+      {
+       "nome": "A-Skip",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "a-skip"
+      },
+      {
+       "nome": "Calciata sotto",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "calciata-sotto"
+      },
+      {
+       "nome": "B-Skip",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "b-skip"
+      },
+      {
+       "nome": "Calciata dietro",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "calciata-dietro"
+      },
+      {
+       "nome": "Doppio appoggio",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "doppio-appoggio"
+      },
+      {
+       "nome": "Bounds gambe tese",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "bounds-gambe-tese"
+      }
+     ]
+    },
+    {
+     "nome": "Run",
+     "esercizi": [
+      {
+       "nome": "Tempo Run",
+       "serie": "6x100mt in 18sec",
+       "rec": "corsa lenta 100mt",
+       "chiave": "tempo-run"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prepa2",
+   "breve": "Prepa 2",
+   "titolo": "Prepa · Giorno 2",
+   "luogo": "campo",
+   "blocchi": [
+    {
+     "nome": "Warm Up",
+     "nota": "Simil partita senza disco",
+     "esercizi": []
+    },
+    {
+     "nome": "Andature",
+     "nota": "1x10mt ciascuna · recupero: corsa per tornare",
+     "esercizi": [
+      {
+       "nome": "Lateral Shuffle",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "lateral-shuffle"
+      },
+      {
+       "nome": "Lateral Power Shuffle",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "lateral-power-shuffle"
+      },
+      {
+       "nome": "Crossover",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "crossover"
+      },
+      {
+       "nome": "Power Crossover",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "power-crossover"
+      },
+      {
+       "nome": "Doppio impulso laterale",
+       "serie": "1x10mt",
+       "rec": "",
+       "chiave": "doppio-impulso-laterale"
+      }
+     ]
+    },
+    {
+     "nome": "Run",
+     "esercizi": [
+      {
+       "nome": "Croce: in stile T test, ma invece di fare una T fate una croce",
+       "serie": "3x3 max intensità",
+       "rec": "1-2m",
+       "chiave": "croce-in-stile-t-test-ma-invece-di-fare-"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "programma": {
+  "id": "2026-11",
+  "nome": "Programma da novembre 2026",
+  "dal": "2026-11-18"
+ }
 }

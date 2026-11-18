@@ -26,3 +26,11 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 - Si pubblica solo la colonna WEEKEND: niente note, niente allenamenti settimanali.
 - Regole colori e allenamenti infrasettimanali (orari nel modello, Pod/Pausa = allenamento normale, "Incontro …" = evento Nazionale con orario), impegni extra (inizio allenamenti 11/1, raduno Shout 11-12/9, Champions 24-26/9, fine EUC 10/7) sono in `build/calendario.js`.
 - Pagina **Palestra** (stessa pagina, scheda `#palestra`): le schede sono in `build/palestra.json`. Quando Susanna manda un programma nuovo, trascrivilo lì (blocchi → esercizi con serie e recupero), aggiorna "aggiornato", rigenera e pubblica.
+- Colori dei blocchi (Mobilità, Core, Plyo…) in `COLORI_BLOCCO` nel modello. In `palestra.json` ogni esercizio ha una `chiave` fissa
+  (stessa chiave = stesso storico anche quando cambia il programma) e `carico: true` se si segna il peso. Programma nuovo:
+  cambia `programma.id`/`nome`/`dal`, riusa le chiavi degli esercizi che restano, chiavi nuove per quelli nuovi.
+
+# Pesi Shout (pagine "I miei pesi" e "Andamento")
+- Script Google in `apps-script/pesi.gs`, attaccato al foglio "Pesi Shout" (account BFD): schede Atlete (nome, PIN) e Pesi (righe solo aggiunte).
+- L'indirizzo dello script pubblicato va in `build/pesi.json` (`url`). Vuoto = le due pagine restano nascoste.
+- Nomi, PIN e pesi stanno SOLO nel foglio Google, mai nel repository.

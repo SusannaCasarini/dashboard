@@ -139,11 +139,56 @@
     .pill.rec::before { content: "⏱ "; }
     .palestra-piede { color: var(--grigio); font-size: 13px; margin-top: 14px; }
 
+    /* Colori dei blocchi di esercizi */
+    .blocco { --c: var(--shout); }
+    .blocco h3 { color: var(--c); border-left: 4px solid var(--c); padding-left: 10px; margin-left: -2px; }
+
+    /* Pesi e Andamento */
+    .riquadro { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+    .riquadro h2 { font-family: Georgia, serif; font-weight: 400; font-size: 24px; margin: 0 0 6px; }
+    .campo { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; font-size: 14px; color: var(--grigio); }
+    .campo select, .campo input, .es-kg input, .data-allen input {
+      min-height: 44px; border-radius: 10px; border: 1px solid var(--bordo); background: var(--carta2); color: var(--testo);
+      font: inherit; font-size: 16px; padding: 0 12px; }
+    .bottone { min-height: 48px; width: 100%; border-radius: 12px; border: 0; background: var(--shout); color: #1b0b0b;
+      font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 6px; }
+    .bottone:disabled { opacity: .6; cursor: wait; }
+    .msg { font-size: 14px; margin-top: 10px; min-height: 20px; }
+    .msg.err { color: var(--shout); }
+    .msg.ok { color: var(--all); }
+    .ciao { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .ciao b { font-size: 18px; }
+    .link { background: none; border: 0; color: var(--grigio); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; min-height: 44px; }
+    .data-allen { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; color: var(--grigio); flex-wrap: wrap; }
+    .es-kg { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--bordo); }
+    .es-kg:last-child { border-bottom: 0; }
+    .es-kg .n { flex: 1; font-size: 16px; font-weight: 500; }
+    .es-kg .n small { display: block; font-size: 13px; color: var(--grigio); font-weight: 400; margin-top: 2px; }
+    .stepper { display: flex; align-items: center; gap: 4px; flex: none; }
+    .stepper button { width: 40px; height: 44px; border-radius: 10px; border: 1px solid var(--bordo); background: var(--carta2);
+      color: var(--testo); font-size: 20px; cursor: pointer; }
+    .stepper input { width: 64px; text-align: center; padding: 0 4px; }
+    .stepper span { font-size: 13px; color: var(--grigio); margin-left: 2px; }
+    .andamento-es { background: var(--carta); border: 1px solid var(--bordo); border-left: 4px solid var(--c); border-radius: 0 14px 14px 0;
+      padding: 12px 16px; margin-bottom: 10px; cursor: pointer; }
+    .andamento-es .testa { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .andamento-es .testa b { font-size: 16px; }
+    .andamento-es .num { font-size: 15px; white-space: nowrap; }
+    .andamento-es .num strong { color: var(--c); font-size: 18px; }
+    .andamento-es .info { font-size: 13px; color: var(--grigio); margin-top: 2px; }
+    .andamento-es svg { display: block; width: 100%; height: 44px; margin-top: 6px; }
+    .andamento-es .storia { margin-top: 8px; border-top: 1px solid var(--bordo); }
+    .andamento-es .storia div { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--bordo); }
+    .andamento-es .storia div:last-child { border-bottom: 0; }
+    .andamento-es .storia em { font-style: normal; color: var(--grigio); font-size: 12px; margin-left: 6px; }
+    .vecchio { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--bordo); color: var(--grigio); font-weight: 400; }
+
     @media (max-width: 600px) {
       .contenitore { padding: 12px 12px 40px; }
       .testata { gap: 12px; } .testata img { width: 56px; height: 56px; }
       .testata h1 { font-size: 27px; }
-      .pagine a { flex: 1; justify-content: center; padding: 0 8px; }
+      .pagine a { flex: 1; justify-content: center; padding: 0 4px; font-size: 14px; }
+      .stepper button { width: 36px; } .stepper input { width: 56px; }
       .es { grid-template-columns: 1fr auto; }
       .es .n { grid-column: 1 / -1; }
       .es { grid-template-columns: auto auto 1fr; }
@@ -168,14 +213,19 @@
   </header>
 
   <nav class="pagine" role="tablist">
-    <a href="#calendario" role="tab" data-pagina="calendario">📅 Calendario</a>
-    <a href="#palestra" role="tab" data-pagina="palestra">🏋️ Palestra</a>
+    <a href="#calendario" role="tab" data-pagina="calendario">Calendario</a>
+    <a href="#palestra" role="tab" data-pagina="palestra">Palestra</a>
+    <a href="#pesi" role="tab" data-pagina="pesi" hidden>I miei pesi</a>
+    <a href="#andamento" role="tab" data-pagina="andamento" hidden>Andamento</a>
   </nav>
 
   <section id="pag-palestra" hidden>
     <div class="vista schede-nav" role="group" aria-label="Scheda" id="schede-nav"></div>
     <div id="scheda"></div>
   </section>
+
+  <section id="pag-pesi" hidden></section>
+  <section id="pag-andamento" hidden></section>
 
   <section id="pag-calendario">
   <div id="prossimo"></div>
@@ -355,6 +405,11 @@
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
+  // Colore di ogni blocco di esercizi (Mobilità, Core, Plyo…)
+  const COLORI_BLOCCO = { 'mobilità': '#9aa4b5', 'core': '#2dd4bf', 'plyo': '#fbbf24', 'power': '#fb923c', 'strength': '#f87171',
+    'comp. e acc.': '#a78bfa', 'warm up': '#4ade80', 'andature': '#38bdf8', 'run': '#f472b6' };
+  const coloreBlocco = (nome) => COLORI_BLOCCO[String(nome).toLowerCase()] || '#9aa4b5';
+
   // ===== PALESTRA =====
   let schedaScelta = PALESTRA.schede[0].id;
   function disegnaPalestra() {
@@ -366,10 +421,10 @@
       : '<span class="luogo" style="--c:var(--naz);--bg:var(--naz-bg)">In palestra</span>';
     document.getElementById('scheda').innerHTML = `<article class="scheda">
       <div class="scheda-testa"><h2>${sc.titolo}</h2>${luogo}</div>
-      ${sc.blocchi.map(b => `<div class="blocco"><h3>${b.nome}</h3>${b.nota ? `<div class="nota">${b.nota}</div>` : ''}
+      ${sc.blocchi.map(b => `<div class="blocco" style="--c:${coloreBlocco(b.nome)}"><h3>${b.nome}</h3>${b.nota ? `<div class="nota">${b.nota}</div>` : ''}
         ${b.esercizi.map(e => `<div class="es"><span class="n">${e.nome}</span><span class="pill">${e.serie}</span>${e.rec ? `<span class="pill rec">${e.rec}</span>` : '<span></span>'}</div>`).join('')}
       </div>`).join('')}</article>
-      <p class="palestra-piede">Programma in corso · aggiornato al ${PALESTRA.aggiornato}. Serie x ripetizioni, ⏱ = recupero.</p>`;
+      <p class="palestra-piede">${PALESTRA.programma.nome}. Serie x ripetizioni, ⏱ = recupero.</p>`;
   }
   document.getElementById('schede-nav').addEventListener('click', (ev) => {
     const b = ev.target.closest('button'); if (!b) return;
@@ -378,15 +433,204 @@
 
   // ===== CAMBIO PAGINA (dall'indirizzo: #calendario oppure #palestra) =====
   const SOTTOTITOLO = document.getElementById('sottotitolo').textContent;
+  const PAGINE = {
+    calendario: ['Calendario <em>Shout</em> 2027', SOTTOTITOLO],
+    palestra:   ['Palestra <em>Shout</em>', 'Schede di forza e preparazione atletica'],
+    pesi:       ['I miei <em>pesi</em>', 'Segna i carichi di oggi'],
+    andamento:  ['Il mio <em>andamento</em>', 'Tutti i tuoi esercizi e i pesi fatti finora'],
+  };
   function mostraPagina() {
-    const pag = location.hash === '#palestra' ? 'palestra' : 'calendario';
-    document.getElementById('pag-calendario').hidden = pag !== 'calendario';
-    document.getElementById('pag-palestra').hidden = pag !== 'palestra';
+    let pag = location.hash.slice(1);
+    if (!PAGINE[pag] || ((pag === 'pesi' || pag === 'andamento') && !PESI_URL)) pag = 'calendario';
+    for (const k of Object.keys(PAGINE)) document.getElementById('pag-' + k).hidden = k !== pag;
     document.querySelectorAll('.pagine a').forEach(a => a.setAttribute('aria-selected', a.dataset.pagina === pag));
-    document.getElementById('titolo').innerHTML = pag === 'palestra' ? 'Palestra <em>Shout</em>' : 'Calendario <em>Shout</em> 2027';
-    document.getElementById('sottotitolo').textContent = pag === 'palestra' ? 'Schede di forza e preparazione atletica' : SOTTOTITOLO;
+    document.getElementById('titolo').innerHTML = PAGINE[pag][0];
+    document.getElementById('sottotitolo').textContent = PAGINE[pag][1];
+    if (pag === 'pesi') disegnaPesi();
+    if (pag === 'andamento') disegnaAndamento();
   }
   window.addEventListener('hashchange', mostraPagina);
+
+  // ===== PESI E ANDAMENTO =====
+  // I pesi stanno in un foglio Google: la pagina li chiede a uno script Google (PESI_URL) con nome + PIN.
+  const PESI_URL = __PESI_URL__;
+  const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const kgTesto = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
+  const dataBreve = (s) => { const d = data(s); return `${d.getDate()} ${MESI[d.getMonth()].slice(0, 3)}${d.getFullYear() !== oggi.getFullYear() ? ' ' + d.getFullYear() : ''}`; };
+  // memoria del telefono (nome + PIN), così si inserisce una volta sola
+  const memoria = {
+    leggi() { try { return JSON.parse(localStorage.getItem('shout-pesi') || 'null'); } catch (e) { return null; } },
+    scrivi(v) { try { v ? localStorage.setItem('shout-pesi', JSON.stringify(v)) : localStorage.removeItem('shout-pesi'); } catch (e) {} },
+  };
+  let utente = memoria.leggi();      // { atleta, pin }
+  let storico = null;                // righe salvate dall'atleta
+  let elencoAtlete = null;
+  let schedaPesi = null;
+  let aperti = new Set();
+
+  async function chiama(dati) {
+    const r = await fetch(PESI_URL, { method: 'POST', body: JSON.stringify(dati) });
+    return r.json();
+  }
+  async function caricaStorico() {
+    const r = await chiama({ azione: 'storico', atleta: utente.atleta, pin: utente.pin });
+    if (!r.ok) throw new Error(r.errore);
+    storico = r.righe;
+  }
+  // ultima volta per ogni esercizio: { chiave: {data, kg} }
+  function ultimi() {
+    const u = {};
+    for (const r of storico || []) if (!u[r.chiave] || r.data >= u[r.chiave].data) u[r.chiave] = r;
+    return u;
+  }
+  function esci() { utente = null; storico = null; memoria.scrivi(null); mostraPagina(); }
+
+  // Schermata "Chi sei?" (uguale per Pesi e Andamento)
+  async function disegnaAccesso(box) {
+    box.innerHTML = `<div class="riquadro"><h2>Chi sei?</h2>
+      <div class="nota" style="color:var(--grigio)">Scegli il tuo nome e scrivi il tuo PIN. Il telefono se lo ricorda.</div>
+      <label class="campo">Nome<select id="acc-nome"><option value="">Caricamento…</option></select></label>
+      <label class="campo">PIN<input id="acc-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 cifre"></label>
+      <button class="bottone" id="acc-entra">Entra</button><div class="msg err" id="acc-msg"></div></div>`;
+    const sel = box.querySelector('#acc-nome'), msg = box.querySelector('#acc-msg'), pin = box.querySelector('#acc-pin');
+    try {
+      if (!elencoAtlete) { const r = await (await fetch(PESI_URL + '?azione=atlete')).json(); elencoAtlete = r.atlete || []; }
+      sel.innerHTML = '<option value="">Scegli il tuo nome</option>' + elencoAtlete.map(n => `<option>${esc(n)}</option>`).join('');
+    } catch (e) { msg.textContent = 'Non riesco a collegarmi. Controlla la connessione e ricarica la pagina.'; }
+    sel.onchange = pin.oninput = () => msg.textContent = '';
+    box.querySelector('#acc-entra').onclick = async (ev) => {
+      if (!sel.value) { msg.textContent = 'Scegli il tuo nome'; return; }
+      if (!/^\d{4}$/.test(pin.value)) { msg.textContent = 'Il PIN ha 4 cifre'; return; }
+      ev.target.disabled = true; ev.target.textContent = 'Controllo…';
+      try {
+        const r = await chiama({ azione: 'login', atleta: sel.value, pin: pin.value });
+        if (!r.ok) throw new Error(r.errore);
+        utente = { atleta: sel.value, pin: pin.value }; memoria.scrivi(utente);
+        mostraPagina();
+      } catch (e) { msg.textContent = e.message || 'Errore di collegamento'; ev.target.disabled = false; ev.target.textContent = 'Entra'; }
+    };
+  }
+  const intestazione = () => `<div class="ciao"><span>Ciao <b>${esc(utente.atleta)}</b></span><button class="link" data-esci>Non sei tu? Esci</button></div>`;
+
+  async function preparaUtente(box) {
+    if (!utente) { disegnaAccesso(box); return false; }
+    if (!storico) {
+      box.innerHTML = '<div class="riquadro">Caricamento…</div>';
+      try { await caricaStorico(); }
+      catch (e) {
+        if (/PIN|Troppi/.test(e.message || '')) { utente = null; memoria.scrivi(null); disegnaAccesso(box); return false; }
+        box.innerHTML = `<div class="riquadro"><div class="msg err">Non riesco a caricare i tuoi dati. Controlla la connessione e riprova.</div></div>`; return false;
+      }
+    }
+    return true;
+  }
+
+  // Pagina "I miei pesi"
+  async function disegnaPesi() {
+    const box = document.getElementById('pag-pesi');
+    if (!await preparaUtente(box)) return;
+    const schede = PALESTRA.schede.filter(sc => sc.blocchi.some(b => b.esercizi.some(e => e.carico)));
+    if (!schedaPesi || !schede.find(x => x.id === schedaPesi)) schedaPesi = schede[0].id;
+    const sc = schede.find(x => x.id === schedaPesi);
+    const u = ultimi();
+    const min = iso(new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - 14));
+    box.innerHTML = intestazione() + `
+      <div class="vista schede-nav" role="group">${schede.map(x => `<button data-sp="${x.id}" aria-pressed="${x.id === schedaPesi}">${x.breve}</button>`).join('')}</div>
+      <div class="riquadro">
+        <label class="data-allen">Allenamento del <input type="date" id="pesi-data" value="${OGGI}" min="${min}" max="${OGGI}"></label>
+        ${sc.blocchi.filter(b => b.esercizi.some(e => e.carico)).map(b => `<div class="blocco" style="--c:${coloreBlocco(b.nome)}"><h3>${b.nome}</h3>
+          ${b.esercizi.filter(e => e.carico).map(e => {
+            const ult = u[e.chiave];
+            const passo = /manubri|kettlebell/i.test(e.notaPeso || '') ? 2 : 2.5;
+            return `<div class="es-kg"><span class="n">${esc(e.nome)}<small>${e.serie}${e.notaPeso ? ' · ' + e.notaPeso : ''}${ult ? ` · ultima ${kgTesto(ult.kg)} kg` : ''}</small></span>
+              <span class="stepper"><button type="button" data-passo="-${passo}" aria-label="meno">−</button>
+              <input inputmode="decimal" data-chiave="${e.chiave}" data-nome="${esc(e.nome)}" data-ultima="${ult ? ult.kg : ''}" placeholder="${ult ? kgTesto(ult.kg) : 'kg'}" aria-label="kg ${esc(e.nome)}">
+              <button type="button" data-passo="${passo}" aria-label="più">+</button><span>kg</span></span></div>`;
+          }).join('')}</div>`).join('')}
+        <button class="bottone" id="pesi-salva">Salva allenamento</button>
+        <div class="msg" id="pesi-msg"></div>
+        <p class="palestra-piede">Scrivi solo gli esercizi che hai fatto: quelli vuoti non vengono salvati. Ogni salvataggio si aggiunge ai precedenti.</p>
+      </div>`;
+    box.querySelector('[data-esci]').onclick = esci;
+    box.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { schedaPesi = b.dataset.sp; disegnaPesi(); });
+    box.querySelectorAll('[data-passo]').forEach(b => b.onclick = () => {
+      const inp = b.parentNode.querySelector('input');
+      const base = inp.value !== '' ? Number(inp.value.replace(',', '.')) : Number(inp.dataset.ultima || 0);
+      inp.value = kgTesto(Math.max(0, (isFinite(base) ? base : 0) + Number(b.dataset.passo)));
+    });
+    const msg = box.querySelector('#pesi-msg');
+    box.querySelector('#pesi-salva').onclick = async (ev) => {
+      msg.className = 'msg err'; msg.textContent = '';
+      const voci = [];
+      for (const inp of box.querySelectorAll('input[data-chiave]')) {
+        const v = inp.value.trim(); if (v === '') continue;
+        const kg = Number(v.replace(',', '.'));
+        if (!isFinite(kg) || kg < 0 || kg > 500) { msg.textContent = 'Controlla il peso di ' + inp.dataset.nome; inp.focus(); return; }
+        voci.push({ chiave: inp.dataset.chiave, esercizio: inp.dataset.nome, kg });
+      }
+      if (!voci.length) { msg.textContent = 'Scrivi almeno un peso'; return; }
+      const giorno = box.querySelector('#pesi-data').value || OGGI;
+      ev.target.disabled = true; ev.target.textContent = 'Salvataggio…';
+      try {
+        const r = await chiama({ azione: 'salva', atleta: utente.atleta, pin: utente.pin, data: giorno,
+          programma: PALESTRA.programma.id, scheda: sc.titolo, voci });
+        if (!r.ok) throw new Error(r.errore);
+        for (const v of voci) storico.push({ data: giorno, programma: PALESTRA.programma.id, scheda: sc.titolo, ...v });
+        await disegnaPesi();
+        const m = document.getElementById('pesi-msg');
+        m.className = 'msg ok'; m.textContent = `Salvato: ${voci.length} ${voci.length === 1 ? 'esercizio' : 'esercizi'}. Li trovi in Andamento.`;
+      } catch (e) {
+        msg.textContent = e.message || 'Non riesco a salvare. Controlla la connessione e riprova.';
+        ev.target.disabled = false; ev.target.textContent = 'Salva allenamento';
+      }
+    };
+  }
+
+  // Pagina "Andamento"
+  async function disegnaAndamento() {
+    const box = document.getElementById('pag-andamento');
+    if (!await preparaUtente(box)) return;
+    // esercizi del programma attuale: chiave → {nome, blocco}
+    const attuali = {};
+    for (const sc of PALESTRA.schede) for (const b of sc.blocchi) for (const e of b.esercizi) if (e.carico) attuali[e.chiave] ??= { nome: e.nome, blocco: b.nome };
+    // raggruppa per esercizio; se nello stesso giorno ci sono più righe vale l'ultima
+    const gruppi = {};
+    for (const r of storico) {
+      const g = gruppi[r.chiave] ??= { chiave: r.chiave, nome: r.esercizio, giorni: {} };
+      g.giorni[r.data] = r; g.nome = attuali[r.chiave]?.nome || r.esercizio;
+    }
+    const lista = Object.values(gruppi).map(g => {
+      const voci = Object.values(g.giorni).sort((a, b) => a.data.localeCompare(b.data));
+      return { ...g, voci, ultimo: voci[voci.length - 1], primo: voci[0], record: Math.max(...voci.map(v => v.kg)) };
+    }).sort((a, b) => (!!attuali[b.chiave] - !!attuali[a.chiave]) || b.ultimo.data.localeCompare(a.ultimo.data));
+
+    if (!lista.length) {
+      box.innerHTML = intestazione() + `<div class="riquadro"><h2>Ancora niente</h2><div style="color:var(--grigio)">Quando salvi i pesi in "I miei pesi", qui vedi come vanno esercizio per esercizio.</div></div>`;
+      box.querySelector('[data-esci]').onclick = esci; return;
+    }
+    const grafico = (voci, c) => {
+      if (voci.length < 2) return '';
+      const W = 300, H = 44, kg = voci.map(v => v.kg), lo = Math.min(...kg), hi = Math.max(...kg), sp = hi - lo || 1;
+      const pt = voci.map((v, i) => [4 + i * (W - 8) / (voci.length - 1), H - 6 - (v.kg - lo) / sp * (H - 12)]);
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pt.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+        <circle cx="${pt[pt.length - 1][0]}" cy="${pt[pt.length - 1][1]}" r="3.5" fill="${c}"/></svg>`;
+    };
+    box.innerHTML = intestazione() + lista.map(g => {
+      const att = attuali[g.chiave], c = att ? coloreBlocco(att.blocco) : '#9aa4b5';
+      const volte = g.voci.length;
+      return `<div class="andamento-es" style="--c:${c}" data-k="${esc(g.chiave)}">
+        <div class="testa"><b>${esc(g.nome)}</b>${att ? `<span class="num">${volte > 1 ? kgTesto(g.primo.kg) + ' → ' : ''}<strong>${kgTesto(g.ultimo.kg)} kg</strong></span>` : '<span class="vecchio">programma precedente</span>'}</div>
+        <div class="info">${volte} ${volte === 1 ? 'volta' : 'volte'} · record ${kgTesto(g.record)} kg · ultima ${dataBreve(g.ultimo.data)}</div>
+        ${grafico(g.voci, c)}
+        ${aperti.has(g.chiave) ? `<div class="storia">${g.voci.slice().reverse().map(v => `<div><span>${dataBreve(v.data)}${v.programma && v.programma !== PALESTRA.programma.id ? '<em>programma precedente</em>' : ''}</span><span>${kgTesto(v.kg)} kg</span></div>`).join('')}</div>` : ''}
+      </div>`;
+    }).join('') + '<p class="palestra-piede">Tocca un esercizio per vedere tutte le volte.</p>';
+    box.querySelector('[data-esci]').onclick = esci;
+    box.querySelectorAll('.andamento-es').forEach(el => el.onclick = () => {
+      const k = el.dataset.k; aperti.has(k) ? aperti.delete(k) : aperti.add(k); disegnaAndamento();
+    });
+  }
+  if (PESI_URL) document.querySelectorAll('.pagine a[hidden]').forEach(a => a.hidden = false);
 
   disegnaPalestra();
   mostraPagina();

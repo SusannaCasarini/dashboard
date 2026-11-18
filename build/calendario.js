@@ -123,11 +123,15 @@ for (const x of EXTRA) eventi.push({ daConfermare: false, ...x });
 eventi.sort((x, y) => x.inizio.localeCompare(y.inizio));
 
 const ora = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric' });
+// Indirizzo dello script Google dei pesi (build/pesi.json). Vuoto = pagine "I miei pesi" e "Andamento" nascoste.
+// Per le prove si può passare un indirizzo finto con la variabile PESI_URL.
+const PESI_URL = process.env.PESI_URL || JSON.parse(fs.readFileSync(path.join(__dirname, 'pesi.json'), 'utf8')).url || '';
 const modello = fs.readFileSync(path.join(RADICE, 'modelli', 'calendario.html'), 'utf8');
 const pagina = modello
   .replace('__EVENTI__', JSON.stringify(eventi))
   .replace('__ALLENAMENTI__', JSON.stringify(allenamenti))
   .replace('__PALESTRA__', fs.readFileSync(path.join(__dirname, 'palestra.json'), 'utf8'))
+  .replace('__PESI_URL__', JSON.stringify(PESI_URL))
   .replace('__AGGIORNATO__', ora);
 fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
 fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
