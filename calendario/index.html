@@ -1006,7 +1006,7 @@
         <div class="testa"><b>${esc(g.nome)}</b>${att ? `<span class="num">${volte > 1 ? kgTesto(g.primo.kg) + ' → ' : ''}<strong>${kgTesto(g.ultimo.kg)} kg</strong></span>` : '<span class="vecchio">programma precedente</span>'}</div>
         <div class="info">${volte} ${volte === 1 ? 'volta' : 'volte'} · record ${kgTesto(g.record)} kg · ultima ${dataBreve(g.ultimo.data)}</div>
         ${grafico(g.voci, c)}
-        ${aperti.has(g.chiave) ? `<div class="storia">${g.voci.slice().reverse().map(v => `<div><span>${dataBreve(v.data)}${v.programma && v.programma !== PALESTRA.programma.id ? '<em>programma precedente</em>' : ''}</span><span class="kg-x">${kgTesto(v.kg)} kg<button class="x" data-elimina="${v.data}" data-chiave="${esc(g.chiave)}" data-nome="${esc(g.nome)}" aria-label="Elimina ${esc(g.nome)} del ${dataBreve(v.data)}">✕</button></span></div>`).join('')}</div>` : ''}
+        ${aperti.has(g.chiave) ? `<div class="storia">${g.voci.slice().reverse().map(v => `<div><span>${dataBreve(v.data)}${v.data < PALESTRA.programma.dal ? '<em>programma precedente</em>' : ''}</span><span class="kg-x">${kgTesto(v.kg)} kg<button class="x" data-elimina="${v.data}" data-chiave="${esc(g.chiave)}" data-nome="${esc(g.nome)}" aria-label="Elimina ${esc(g.nome)} del ${dataBreve(v.data)}">✕</button></span></div>`).join('')}</div>` : ''}
       </div>`;
     }).join('') + '<p class="palestra-piede">Tocca un esercizio per vedere tutte le volte.</p>';
     box.querySelector('[data-esci]').onclick = esci;
