@@ -11,7 +11,7 @@
  * Regole dei colori:
  *   - "Raduno …", "Test Match", "EUC"  → Nazionale (azzurro)
  *   - "Tryouts"                         → Shout (rosso)
- *   - "Pasqua"                          → festività (grigio)
+ *   - "Pasqua"                          → Paganello, evento giallo da sabato a Pasquetta
  *   - tutto il resto (CIU, Coppa, Grenoble, Elite Invite…) → evento/torneo (giallo)
  *   - un "?" nel testo                  → "da confermare"
  * Allenamenti infrasettimanali (colonne C lunedì, D martedì, E giovedì), dall'11/01:
@@ -52,7 +52,6 @@ const piu = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 function tipo(t) {
   if (/raduno|test match|\beuc\b/i.test(t)) return 'nazionale';
   if (/tryout/i.test(t)) return 'shout';
-  if (/pasqua/i.test(t)) return 'festa';
   return 'evento';
 }
 // titolo(testo): nome pulito da mostrare
@@ -99,8 +98,8 @@ for (const r of righe) {
   const gio = (r[4] || '').trim().split(/\s+/)[0].toLowerCase();
   const daGiovedi = gio && testo.toLowerCase().startsWith(gio) && !/carri|fede/.test(gio);
   const soloSabato = /sabato/i.test(testo);
-  if (/pasqua/i.test(testo)) {   // Pasqua (domenica) + Pasquetta (lunedì dopo)
-    eventi.push({ titolo: 'Pasqua e Pasquetta', tipo: 'festa', inizio: iso(domenica), fine: iso(piu(domenica, 1)), daConfermare: false });
+  if (/pasqua/i.test(testo)) {   // Pasqua = Paganello (Rimini): sabato, domenica e Pasquetta
+    eventi.push({ titolo: 'Paganello', tipo: 'evento', inizio: iso(sabato), fine: iso(piu(domenica, 1)), daConfermare: false });
     continue;
   }
   eventi.push({

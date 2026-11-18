@@ -19,7 +19,6 @@
       --naz: #38bdf8;    --naz-bg: rgba(56,189,248,.20);
       --shout: #f87171;  --shout-bg: rgba(239,68,68,.24);
       --evento: #facc15; --evento-bg: rgba(250,204,21,.20);
-      --festa: #9aa4b5;  --festa-bg: rgba(154,164,181,.14);
       --all: #4ade80;    --all-bg: rgba(74,222,128,.14);
       --pod: #c084fc;    --pod-bg: rgba(192,132,252,.18);
     }
@@ -164,7 +163,7 @@
     <img src="logo.png" alt="Logo Shout">
     <div>
       <h1 id="titolo">Calendario <em>Shout</em> 2027</h1>
-      <div class="sotto" id="sottotitolo">Impegni da gennaio a settembre · aggiornato al __AGGIORNATO__</div>
+      <div class="sotto" id="sottotitolo">Impegni da gennaio a settembre</div>
     </div>
   </header>
 
@@ -214,14 +213,13 @@
     nazionale: { nome: 'Nazionale', c: 'var(--naz)', bg: 'var(--naz-bg)' },
     shout:     { nome: 'Shout',     c: 'var(--shout)', bg: 'var(--shout-bg)' },
     evento:    { nome: 'Eventi e tornei', c: 'var(--evento)', bg: 'var(--evento-bg)' },
-    festa:     { nome: 'Festività', c: 'var(--festa)', bg: 'var(--festa-bg)' },
     allenamento: { nome: 'Allenamenti', c: 'var(--all)', bg: 'var(--all-bg)', solo: 'mesi' },
     pod:       { nome: 'Pod / pausa', c: 'var(--pod)', bg: 'var(--pod-bg)', solo: 'mesi' },
   };
   const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
   const GS = ['L','M','M','G','V','S','D'];
   const GIORNI = ['dom','lun','mar','mer','gio','ven','sab'];
-  const attivi = new Set(['nazionale','shout','evento','festa','allenamento','pod']);
+  const attivi = new Set(['nazionale','shout','evento','allenamento','pod']);
   let vista = 'elenco';
 
   const data = (s) => { const [a,m,g] = s.split('-').map(Number); return new Date(a, m - 1, g); };
@@ -252,7 +250,7 @@
   }
 
   function disegnaProssimo() {
-    const e = EVENTI.find(x => x.fine >= OGGI && x.tipo !== 'festa');
+    const e = EVENTI.find(x => x.fine >= OGGI);
     const box = document.getElementById('prossimo');
     if (!e) { box.innerHTML = ''; return; }
     const t = TIPI[e.tipo];
