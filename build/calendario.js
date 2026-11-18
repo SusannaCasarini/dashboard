@@ -16,7 +16,7 @@
  *   - un "?" nel testo                  → "da confermare"
  * Allenamenti infrasettimanali (colonne C lunedì, D martedì, E giovedì), dall'11/01:
  *   - orari e luoghi sono nel modello (lun e mar 19:30–21:30 Battiferro, gio 21–23 CUSB);
- *   - "Pod", "Pausa", "Lezione di corsa" → tipo "pod" (viola con la P);
+ *   - "Pod", "Pausa", "Lezione di corsa" → allenamento normale (deciso da Susanna il 18/11/2026);
  *   - "Incontro …" (es. "Incontro Formativo Online 19-22") → evento della Nazionale al posto
  *     dell'allenamento, l'orario "19-22" diventa "19:00–22:00";
  *   - "Pasquetta" o una casella uguale all'evento del weekend (es. "Elite", "EUC") → niente;
@@ -90,7 +90,7 @@ for (const r of righe) {
     }
     const primaParola = v.split(/\s+/)[0].toLowerCase();
     if (primaParola && testo.toLowerCase().startsWith(primaParola) && /[a-z]/.test(primaParola)) continue;
-    allenamenti.push({ data: giorno, tipo: /pod|pausa|corsa/i.test(v) ? 'pod' : 'allenamento' });
+    allenamenti.push({ data: giorno, tipo: 'allenamento' });   // Pod/Pausa compresi: li aggiornano loro di volta in volta
   }
   if (!testo) continue;
   const sabato = piu(lunedi, 5), domenica = piu(lunedi, 6), giovedi = piu(lunedi, 3);
@@ -133,5 +133,4 @@ fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
 fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
 eventi.sort((x, y) => x.inizio.localeCompare(y.inizio));
 console.log(`Calendario generato: ${eventi.length} impegni, ${allenamenti.length} giorni infrasettimanali`);
-console.log(' Pod/Pausa: ' + allenamenti.filter(a => a.tipo === 'pod').map(a => a.data).join(', '));
 for (const e of eventi) console.log(` ${e.inizio} → ${e.fine}  [${e.tipo}]  ${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`);
