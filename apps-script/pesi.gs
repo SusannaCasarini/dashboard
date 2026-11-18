@@ -8,7 +8,8 @@
  *   - "Atlete": Nome visualizzato · Nome · Cognome · PIN (sempre 0000) · Attiva (✓)
  *   - "Pesi":   Salvato il · Data allenamento · Atleta · Programma · Scheda · Chiave · Esercizio · Kg
  * Ogni salvataggio AGGIUNGE righe in fondo a "Pesi": le righe vecchie non vengono mai cambiate.
- * Per correggere un errore, Susanna modifica o cancella la riga direttamente nel foglio.
+ * L'unica cancellazione possibile è "elimina": toglie un esercizio di un giorno preciso di UNA atleta
+ * (la usa la x nella pagina Andamento). Susanna può comunque correggere a mano nel foglio.
  *
  * Strumenti di Google usati (sono già dentro Apps Script, non si installa niente):
  * - SpreadsheetApp: legge e scrive i fogli Google.
@@ -27,6 +28,13 @@ const SQUADRA = 'Shout';
 const FUSO = 'Europe/Rome';
 const MAX_ERRORI_PIN = 5;        // dopo 5 PIN sbagliati...
 const BLOCCO_SECONDI = 15 * 60;  // ...quell'atleta è bloccata per 15 minuti
+const GIORNI_INDIETRO = 90;      // si può salvare un allenamento fino a 90 giorni fa
+
+/** testoData(valore): una data del foglio (o un testo) diventa "2027-01-13", nel fuso orario del foglio. */
+function testoData(v) {
+  const fuso = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone() || FUSO;
+  return v instanceof Date ? Utilities.formatDate(v, fuso, 'yyyy-MM-dd') : String(v);
+}
 
 /**
  * prepara(): DA LANCIARE A MANO una volta (e di nuovo quando entrano giocatrici nuove).
@@ -127,7 +135,8 @@ function doGet(e) {
 
 /**
  * doPost(e): risponde quando la pagina MANDA dei dati. Il testo ricevuto è JSON con:
- *   azione: 'login' | 'salva' | 'storico', atleta, pin, e per 'salva': data, programma, scheda, voci[{chiave, esercizio, kg}]
+ *   azione: 'login' | 'salva' | 'storico' | 'elimina', atleta, pin,
+ *   per 'salva': data, programma, scheda, voci[{chiave, esercizio, kg}]; per 'elimina': data, chiave
  * Per ogni azione prima controlla nome + PIN con verifica().
  */
 function doPost(e) {
@@ -142,20 +151,19 @@ function doPost(e) {
   if (d.azione === 'login') return risposta({ ok: true });
 
   if (d.azione === 'storico') {
-    const fmt = (v) => v instanceof Date ? Utilities.formatDate(v, FUSO, 'yyyy-MM-dd') : String(v);
     const righe = pesi.getDataRange().getValues().slice(1)
       .filter(r => String(r[2]) === d.atleta)
-      .map(r => ({ data: fmt(r[1]), programma: String(r[3]), scheda: String(r[4]), chiave: String(r[5]),
+      .map(r => ({ data: testoData(r[1]), programma: String(r[3]), scheda: String(r[4]), chiave: String(r[5]),
                    esercizio: String(r[6]), kg: Number(r[7]) }));
     return risposta({ ok: true, righe });
   }
 
   if (d.azione === 'salva') {
-    // data dell'allenamento: oggi oppure fino a 14 giorni fa (non nel futuro)
+    // data dell'allenamento: oggi oppure fino a 90 giorni fa (non nel futuro)
     const oggi = Utilities.formatDate(new Date(), FUSO, 'yyyy-MM-dd');
-    const limite = Utilities.formatDate(new Date(Date.now() - 14 * 86400000), FUSO, 'yyyy-MM-dd');
+    const limite = Utilities.formatDate(new Date(Date.now() - GIORNI_INDIETRO * 86400000), FUSO, 'yyyy-MM-dd');
     const data = /^\d{4}-\d{2}-\d{2}$/.test(d.data) ? d.data : oggi;
-    if (data > oggi || data < limite) return risposta({ ok: false, errore: 'La data deve essere tra oggi e 14 giorni fa' });
+    if (data > oggi || data < limite) return risposta({ ok: false, errore: 'La data deve essere tra oggi e ' + GIORNI_INDIETRO + ' giorni fa' });
     const voci = Array.isArray(d.voci) ? d.voci.slice(0, 30) : [];
     const adesso = new Date();
     const nuove = [];
@@ -174,6 +182,28 @@ function doPost(e) {
       lock.releaseLock();
     }
     return risposta({ ok: true, salvate: nuove.length });
+  }
+
+  if (d.azione === 'elimina') {
+    // toglie le righe di QUESTA atleta, con questa data e questo esercizio (partendo dal fondo, così i numeri di riga non si spostano)
+    const data = String(d.data || ''), chiave = String(d.chiave || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || !chiave) return risposta({ ok: false, errore: 'Richiesta non valida' });
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    let tolte = 0;
+    try {
+      const valori = pesi.getDataRange().getValues();
+      for (let i = valori.length - 1; i >= 1; i--) {
+        const r = valori[i];
+        if (String(r[2]) === d.atleta && testoData(r[1]) === data && String(r[5]) === chiave) {
+          pesi.deleteRow(i + 1);   // deleteRow(n) cancella la riga n del foglio (le righe del foglio partono da 1)
+          tolte++;
+        }
+      }
+    } finally {
+      lock.releaseLock();
+    }
+    return risposta({ ok: true, tolte });
   }
 
   return risposta({ ok: false, errore: 'Azione sconosciuta' });

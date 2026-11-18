@@ -178,9 +178,13 @@
     .andamento-es .info { font-size: 13px; color: var(--grigio); margin-top: 2px; }
     .andamento-es svg { display: block; width: 100%; height: 44px; margin-top: 6px; }
     .andamento-es .storia { margin-top: 8px; border-top: 1px solid var(--bordo); }
-    .andamento-es .storia div { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--bordo); }
+    .andamento-es .storia div { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--bordo); }
     .andamento-es .storia div:last-child { border-bottom: 0; }
     .andamento-es .storia em { font-style: normal; color: var(--grigio); font-size: 12px; margin-left: 6px; }
+    .kg-x { display: inline-flex; align-items: center; gap: 8px; }
+    .x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--bordo); background: none; color: var(--grigio);
+      font-size: 14px; cursor: pointer; }
+    .x:hover { color: var(--shout); border-color: var(--shout); }
     .vecchio { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--bordo); color: var(--grigio); font-weight: 400; }
 
     @media (max-width: 600px) {
@@ -471,7 +475,9 @@
   let storico = null;                // righe salvate dall'atleta
   let elencoAtlete = null;
   let schedaPesi = null;
+  let dataPesi = null;               // giorno scelto con "Riscrivi" dall'Andamento
   let aperti = new Set();
+  let avvisoAnd = null;              // messaggio in cima all'Andamento (es. "Eliminato…")
 
   async function chiama(dati) {
     const r = await fetch(PESI_URL, { method: 'POST', body: JSON.stringify(dati) });
@@ -530,17 +536,18 @@
 
   // Pagina "I miei pesi"
   async function disegnaPesi() {
+    const giornoScelto = dataPesi; dataPesi = null;   // il giorno preimpostato vale solo per questa apertura
     const box = document.getElementById('pag-pesi');
     if (!await preparaUtente(box)) return;
     const schede = PALESTRA.schede.filter(sc => sc.blocchi.some(b => b.esercizi.some(e => e.carico)));
     if (!schedaPesi || !schede.find(x => x.id === schedaPesi)) schedaPesi = schede[0].id;
     const sc = schede.find(x => x.id === schedaPesi);
     const u = ultimi();
-    const min = iso(new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - 14));
+    const min = iso(new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - 90));
     box.innerHTML = intestazione() + `
       <div class="vista schede-nav" role="group">${schede.map(x => `<button data-sp="${x.id}" aria-pressed="${x.id === schedaPesi}">${x.breve}</button>`).join('')}</div>
       <div class="riquadro">
-        <label class="data-allen">Allenamento del <input type="date" id="pesi-data" value="${OGGI}" min="${min}" max="${OGGI}"></label>
+        <label class="data-allen">Allenamento del <input type="date" id="pesi-data" value="${giornoScelto || OGGI}" min="${min}" max="${OGGI}"></label>
         ${sc.blocchi.filter(b => b.esercizi.some(e => e.carico)).map(b => `<div class="blocco" style="--c:${coloreBlocco(b.nome)}"><h3>${b.nome}</h3>
           ${b.esercizi.filter(e => e.carico).map(e => {
             const ult = u[e.chiave];
@@ -581,6 +588,15 @@
     };
   }
 
+  // link "Riscrivilo": apre I miei pesi sul giorno e sulla scheda dell'esercizio eliminato
+  function collegaRiscrivi(box) {
+    box.querySelectorAll('[data-riscrivi]').forEach(a => a.onclick = () => {
+      dataPesi = a.dataset.riscrivi; avvisoAnd = null;
+      const sc = PALESTRA.schede.find(x => x.blocchi.some(b => b.esercizi.some(e => e.carico && e.chiave === a.dataset.chiave)));
+      if (sc) schedaPesi = sc.id;
+    });
+  }
+
   // Pagina "Andamento"
   async function disegnaAndamento() {
     const box = document.getElementById('pag-andamento');
@@ -600,8 +616,8 @@
     }).sort((a, b) => (!!attuali[b.chiave] - !!attuali[a.chiave]) || b.ultimo.data.localeCompare(a.ultimo.data));
 
     if (!lista.length) {
-      box.innerHTML = intestazione() + `<div class="riquadro"><h2>Ancora niente</h2><div style="color:var(--grigio)">Quando salvi i pesi in "I miei pesi", qui vedi come vanno esercizio per esercizio.</div></div>`;
-      box.querySelector('[data-esci]').onclick = esci; return;
+      box.innerHTML = intestazione() + (avvisoAnd ? `<div class="riquadro msg ${avvisoAnd.tipo}">${avvisoAnd.testo}</div>` : '') + `<div class="riquadro"><h2>Ancora niente</h2><div style="color:var(--grigio)">Quando salvi i pesi in "I miei pesi", qui vedi come vanno esercizio per esercizio.</div></div>`;
+      box.querySelector('[data-esci]').onclick = esci; collegaRiscrivi(box); return;
     }
     const grafico = (voci, c) => {
       if (voci.length < 2) return '';
@@ -610,20 +626,37 @@
       return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pt.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
         <circle cx="${pt[pt.length - 1][0]}" cy="${pt[pt.length - 1][1]}" r="3.5" fill="${c}"/></svg>`;
     };
-    box.innerHTML = intestazione() + lista.map(g => {
+    box.innerHTML = intestazione() + (avvisoAnd ? `<div class="riquadro msg ${avvisoAnd.tipo}">${avvisoAnd.testo}</div>` : '') + lista.map(g => {
       const att = attuali[g.chiave], c = att ? coloreBlocco(att.blocco) : '#9aa4b5';
       const volte = g.voci.length;
       return `<div class="andamento-es" style="--c:${c}" data-k="${esc(g.chiave)}">
         <div class="testa"><b>${esc(g.nome)}</b>${att ? `<span class="num">${volte > 1 ? kgTesto(g.primo.kg) + ' → ' : ''}<strong>${kgTesto(g.ultimo.kg)} kg</strong></span>` : '<span class="vecchio">programma precedente</span>'}</div>
         <div class="info">${volte} ${volte === 1 ? 'volta' : 'volte'} · record ${kgTesto(g.record)} kg · ultima ${dataBreve(g.ultimo.data)}</div>
         ${grafico(g.voci, c)}
-        ${aperti.has(g.chiave) ? `<div class="storia">${g.voci.slice().reverse().map(v => `<div><span>${dataBreve(v.data)}${v.programma && v.programma !== PALESTRA.programma.id ? '<em>programma precedente</em>' : ''}</span><span>${kgTesto(v.kg)} kg</span></div>`).join('')}</div>` : ''}
+        ${aperti.has(g.chiave) ? `<div class="storia">${g.voci.slice().reverse().map(v => `<div><span>${dataBreve(v.data)}${v.programma && v.programma !== PALESTRA.programma.id ? '<em>programma precedente</em>' : ''}</span><span class="kg-x">${kgTesto(v.kg)} kg<button class="x" data-elimina="${v.data}" data-chiave="${esc(g.chiave)}" data-nome="${esc(g.nome)}" aria-label="Elimina ${esc(g.nome)} del ${dataBreve(v.data)}">✕</button></span></div>`).join('')}</div>` : ''}
       </div>`;
     }).join('') + '<p class="palestra-piede">Tocca un esercizio per vedere tutte le volte.</p>';
     box.querySelector('[data-esci]').onclick = esci;
     box.querySelectorAll('.andamento-es').forEach(el => el.onclick = () => {
-      const k = el.dataset.k; aperti.has(k) ? aperti.delete(k) : aperti.add(k); disegnaAndamento();
+      const k = el.dataset.k; aperti.has(k) ? aperti.delete(k) : aperti.add(k); avvisoAnd = null; disegnaAndamento();
     });
+    // ✕: elimina quell'esercizio in quel giorno (dopo conferma)
+    box.querySelectorAll('[data-elimina]').forEach(b => b.onclick = async (ev) => {
+      ev.stopPropagation();
+      const giorno = b.dataset.elimina, chiave = b.dataset.chiave, nome = b.dataset.nome;
+      if (!confirm(`Eliminare ${nome} del ${dataBreve(giorno)}?`)) return;
+      b.disabled = true;
+      try {
+        const r = await chiama({ azione: 'elimina', atleta: utente.atleta, pin: utente.pin, data: giorno, chiave });
+        if (!r.ok) throw new Error(r.errore === 'Azione sconosciuta' ? 'La cancellazione non è ancora attiva: va aggiornato lo script Google.' : r.errore);
+        storico = storico.filter(x => !(x.data === giorno && x.chiave === chiave));
+        avvisoAnd = { tipo: 'ok', testo: `Eliminato ${esc(nome)} del ${dataBreve(giorno)}. <a href="#pesi" data-riscrivi="${giorno}" data-chiave="${esc(chiave)}" style="color:inherit">Riscrivilo</a>` };
+      } catch (e) {
+        avvisoAnd = { tipo: 'err', testo: esc(e.message || 'Non riesco a eliminare. Controlla la connessione e riprova.') };
+      }
+      disegnaAndamento();
+    });
+    collegaRiscrivi(box);
   }
   if (PESI_URL) document.querySelectorAll('.pagine a[hidden]').forEach(a => a.hidden = false);
 
