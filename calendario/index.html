@@ -827,6 +827,8 @@
   // ===== PESI E ANDAMENTO =====
   // I pesi stanno in un foglio Google: la pagina li chiede a uno script Google (PESI_URL) con nome + PIN.
   const PESI_URL = "https://script.google.com/macros/s/AKfycbzd-plSnxB-7jdxoO7dLegX6KW9Z6jfSNtOhhXSAYztwTlsgnx7_kkth_rn3M0M_O33/exec";
+  // Niente PIN personale (scelta di Susanna, 18/11/2026): tutte hanno "0000" nel foglio e lo manda la pagina.
+  const PIN_UNICO = '0000';
   const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // "ARIANNA A." → "Arianna A." (solo come si vede; al foglio si manda il nome originale)
   const nomeBello = (t) => String(t).toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
@@ -838,6 +840,7 @@
     scrivi(v) { try { v ? localStorage.setItem('shout-pesi', JSON.stringify(v)) : localStorage.removeItem('shout-pesi'); } catch (e) {} },
   };
   let utente = memoria.leggi();      // { atleta, pin }
+  if (utente) utente.pin = PIN_UNICO;
   let storico = null;                // righe salvate dall'atleta
   let elencoAtlete = null;
   let schedaPesi = null;
@@ -863,24 +866,22 @@
   // Schermata "Chi sei?" (uguale per Pesi e Andamento)
   async function disegnaAccesso(box) {
     box.innerHTML = `<div class="riquadro"><h2>Chi sei?</h2>
-      <div class="nota" style="color:var(--grigio)">Scegli il tuo nome e scrivi il tuo PIN. Il telefono se lo ricorda.</div>
+      <div class="nota" style="color:var(--grigio)">Scegli il tuo nome. Il telefono se lo ricorda.</div>
       <label class="campo">Nome<select id="acc-nome"><option value="">Caricamento…</option></select></label>
-      <label class="campo">PIN<input id="acc-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 cifre"></label>
       <button class="bottone" id="acc-entra">Entra</button><div class="msg err" id="acc-msg"></div></div>`;
-    const sel = box.querySelector('#acc-nome'), msg = box.querySelector('#acc-msg'), pin = box.querySelector('#acc-pin');
+    const sel = box.querySelector('#acc-nome'), msg = box.querySelector('#acc-msg');
     try {
-      if (!elencoAtlete) { const r = await (await fetch(PESI_URL + '?azione=atlete')).json(); elencoAtlete = r.atlete || []; }
+      if (!elencoAtlete) { const r = await (await fetch(PESI_URL + '?azione=atlete')).json(); elencoAtlete = (r.atlete || []).sort((a, b) => a.localeCompare(b, 'it')); }
       sel.innerHTML = '<option value="">Scegli il tuo nome</option>' + elencoAtlete.map(n => `<option value="${esc(n)}">${esc(nomeBello(n))}</option>`).join('');
     } catch (e) { msg.textContent = 'Non riesco a collegarmi. Controlla la connessione e ricarica la pagina.'; }
-    sel.onchange = pin.oninput = () => msg.textContent = '';
+    sel.onchange = () => msg.textContent = '';
     box.querySelector('#acc-entra').onclick = async (ev) => {
       if (!sel.value) { msg.textContent = 'Scegli il tuo nome'; return; }
-      if (!/^\d{4}$/.test(pin.value)) { msg.textContent = 'Il PIN ha 4 cifre'; return; }
       ev.target.disabled = true; ev.target.textContent = 'Controllo…';
       try {
-        const r = await chiama({ azione: 'login', atleta: sel.value, pin: pin.value });
+        const r = await chiama({ azione: 'login', atleta: sel.value, pin: PIN_UNICO });
         if (!r.ok) throw new Error(r.errore);
-        utente = { atleta: sel.value, pin: pin.value }; memoria.scrivi(utente);
+        utente = { atleta: sel.value, pin: PIN_UNICO }; memoria.scrivi(utente);
         mostraPagina();
       } catch (e) { msg.textContent = e.message || 'Errore di collegamento'; ev.target.disabled = false; ev.target.textContent = 'Entra'; }
     };

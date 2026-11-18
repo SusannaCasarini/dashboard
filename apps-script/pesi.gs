@@ -5,7 +5,7 @@
  * La pagina non vede mai il foglio: chiede le cose a questo script, che controlla nome + PIN.
  *
  * Il foglio ha due schede, create da prepara():
- *   - "Atlete": Nome visualizzato · Nome · Cognome · PIN · Attiva (✓)
+ *   - "Atlete": Nome visualizzato · Nome · Cognome · PIN (sempre 0000) · Attiva (✓)
  *   - "Pesi":   Salvato il · Data allenamento · Atleta · Programma · Scheda · Chiave · Esercizio · Kg
  * Ogni salvataggio AGGIUNGE righe in fondo a "Pesi": le righe vecchie non vengono mai cambiate.
  * Per correggere un errore, Susanna modifica o cancella la riga direttamente nel foglio.
@@ -65,9 +65,8 @@ function prepara() {
     // nome visualizzato "Giulia R."; se esiste già, nome e cognome per intero
     let vis = nome + ' ' + cognome.charAt(0).toUpperCase() + '.';
     if (nomiVisti.has(vis)) vis = nome + ' ' + cognome;
-    let pin;
-    do { pin = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (pinUsati.has(pin));
-    pinUsati.add(pin); nomiVisti.add(vis); presenti.add((nome + ' ' + cognome).toLowerCase());
+    const pin = '0000';   // niente PIN personale: la pagina manda sempre 0000 (scelta di Susanna, 18/11/2026)
+    nomiVisti.add(vis); presenti.add((nome + ' ' + cognome).toLowerCase());
     nuove.push([vis, nome, cognome, pin, true]);
   }
   if (nuove.length) {

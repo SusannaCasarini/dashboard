@@ -34,3 +34,7 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 - Script Google in `apps-script/pesi.gs`, attaccato al foglio "Pesi Shout" (account BFD): schede Atlete (nome, PIN) e Pesi (righe solo aggiunte).
 - L'indirizzo dello script pubblicato va in `build/pesi.json` (`url`). Vuoto = le due pagine restano nascoste.
 - Nomi, PIN e pesi stanno SOLO nel foglio Google, mai nel repository.
+- Il foglio è "Calendario Shout" `1y2ybw3MQ2UsDSXdb1PKPlWCbfmnGKwkXaxfrNtr7Iv8`, schede `Atlete` e `Pesi`.
+- Niente PIN personale: in Atlete la colonna PIN è "0000" per tutte, la pagina lo manda da sola. Nuova giocatrice =
+  riga in Atlete con nome visualizzato in MAIUSCOLO ("NOME C."), PIN "0000", Attiva = vero. Chi smette: Attiva = falso
+  (i suoi pesi restano). La pagina mostra i nomi in ordine alfabetico.
