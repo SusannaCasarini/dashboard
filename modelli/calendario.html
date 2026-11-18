@@ -181,6 +181,46 @@
     .andamento-es .storia div { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--bordo); }
     .andamento-es .storia div:last-child { border-bottom: 0; }
     .andamento-es .storia em { font-style: normal; color: var(--grigio); font-size: 12px; margin-left: 6px; }
+    /* Area staff (preparatore e fisioterapista) */
+    .staff-barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; justify-content: space-between; margin-bottom: 14px; }
+    .staff-barra .campo { margin: 0; flex: 1 1 240px; min-width: 0; }
+    .staff-barra select { width: 100%; }
+    .staff-letti { font-size: 13px; color: var(--grigio); display: flex; align-items: center; gap: 8px; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .tile { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 12px 14px; }
+    .tile span { display: block; font-size: 13px; color: var(--grigio); }
+    .tile b { display: block; font-family: Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.15; margin-top: 2px; }
+    .tab-dati { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .tab-dati th { text-align: left; font-weight: 600; color: var(--grigio); font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+      padding: 8px 10px; border-bottom: 1px solid var(--bordo); white-space: nowrap; }
+    .tab-dati td { padding: 10px; border-bottom: 1px solid var(--bordo); white-space: nowrap; }
+    .tab-dati tr:last-child td { border-bottom: 0; }
+    .tab-dati td.n, .tab-dati th.n { text-align: right; }
+    .tab-dati tr[data-scegli] { cursor: pointer; }
+    .tab-dati tr[data-scegli]:hover td { background: var(--carta2); }
+    .tab-dati tr.evid td { background: rgba(248,113,113,.12); }
+    .scorri { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .multipli { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .grafico-es { background: var(--carta); border: 1px solid var(--bordo); border-top: 4px solid var(--c); border-radius: 14px; padding: 12px 14px; }
+    .grafico-es h4 { margin: 0; font-size: 16px; }
+    .grafico-es .info { font-size: 13px; color: var(--grigio); margin: 2px 0 6px; }
+    .grafico-es .info strong { color: var(--testo); }
+    svg.tempo { display: block; width: 100%; height: auto; overflow: visible; }
+    svg.tempo text { fill: var(--grigio); font-size: 11px; font-family: inherit; }
+    svg.tempo .griglia line { stroke: var(--bordo); stroke-width: 1; }
+    .barre { display: flex; flex-direction: column; gap: 6px; }
+    .barra-riga { display: grid; grid-template-columns: 110px 1fr 70px; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;
+      min-height: 32px; border-radius: 8px; padding: 0 4px; }
+    .barra-riga:hover, .barra-riga.evid { background: var(--carta2); }
+    .barra-riga .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .barra-riga .tr { height: 14px; background: var(--c); border-radius: 0 4px 4px 0; min-width: 2px; }
+    .barra-riga .v { text-align: right; font-variant-numeric: tabular-nums; }
+    .barra-riga .v small { display: block; color: var(--grigio); font-size: 11px; }
+    .legenda-mini { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--grigio); margin: 4px 0 8px; }
+    .legenda-mini i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+    .ricarica { min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--bordo); background: var(--carta2);
+      color: var(--testo); font: inherit; font-size: 13px; cursor: pointer; }
+    @media (max-width: 600px) { .barra-riga { grid-template-columns: 90px 1fr 62px; } .tile b { font-size: 26px; } }
     .kg-x { display: inline-flex; align-items: center; gap: 8px; }
     .x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--bordo); background: none; color: var(--grigio);
       font-size: 14px; cursor: pointer; }
@@ -221,6 +261,8 @@
     <a href="#palestra" role="tab" data-pagina="palestra">Palestra</a>
     <a href="#pesi" role="tab" data-pagina="pesi" hidden>I miei pesi</a>
     <a href="#andamento" role="tab" data-pagina="andamento" hidden>Andamento</a>
+    <a href="#atlete" role="tab" data-pagina="atlete" hidden>Atlete</a>
+    <a href="#esercizi" role="tab" data-pagina="esercizi" hidden>Esercizi</a>
   </nav>
 
   <section id="pag-palestra" hidden>
@@ -230,6 +272,8 @@
 
   <section id="pag-pesi" hidden></section>
   <section id="pag-andamento" hidden></section>
+  <section id="pag-atlete" hidden></section>
+  <section id="pag-esercizi" hidden></section>
 
   <section id="pag-calendario">
   <div id="prossimo"></div>
@@ -437,7 +481,12 @@
 
   // ===== CAMBIO PAGINA (dall'indirizzo: #calendario oppure #palestra) =====
   const SOTTOTITOLO = document.getElementById('sottotitolo').textContent;
+  // MODO: 'atlete' = pagina pubblica (pesi personali), 'staff' = area riservata preparatore e fisioterapista
+  const MODO = __MODO__;
+  const PAGINE_MODO = MODO === 'staff' ? ['calendario', 'palestra', 'atlete', 'esercizi'] : ['calendario', 'palestra', 'pesi', 'andamento'];
   const PAGINE = {
+    atlete:     ['Le <em>atlete</em>', 'Pesi e andamenti di ogni giocatrice'],
+    esercizi:   ['Gli <em>esercizi</em>', 'Confronto tra le atlete, esercizio per esercizio'],
     calendario: ['Calendario <em>Shout</em> 2027', SOTTOTITOLO],
     palestra:   ['Palestra <em>Shout</em>', 'Schede di forza e preparazione atletica'],
     pesi:       ['I miei <em>pesi</em>', 'Segna i carichi di oggi'],
@@ -445,13 +494,15 @@
   };
   function mostraPagina() {
     let pag = location.hash.slice(1);
-    if (!PAGINE[pag] || ((pag === 'pesi' || pag === 'andamento') && !PESI_URL)) pag = 'calendario';
+    if (!PAGINE[pag] || !PAGINE_MODO.includes(pag) || (['pesi', 'andamento', 'atlete', 'esercizi'].includes(pag) && !PESI_URL)) pag = 'calendario';
     for (const k of Object.keys(PAGINE)) document.getElementById('pag-' + k).hidden = k !== pag;
     document.querySelectorAll('.pagine a').forEach(a => a.setAttribute('aria-selected', a.dataset.pagina === pag));
     document.getElementById('titolo').innerHTML = PAGINE[pag][0];
     document.getElementById('sottotitolo').textContent = PAGINE[pag][1];
     if (pag === 'pesi') disegnaPesi();
     if (pag === 'andamento') disegnaAndamento();
+    if (pag === 'atlete') disegnaStaffAtlete();
+    if (pag === 'esercizi') disegnaStaffEsercizi();
   }
   window.addEventListener('hashchange', mostraPagina);
 
@@ -658,7 +709,201 @@
     });
     collegaRiscrivi(box);
   }
-  if (PESI_URL) document.querySelectorAll('.pagine a[hidden]').forEach(a => a.hidden = false);
+  if (PESI_URL) document.querySelectorAll('.pagine a[hidden]').forEach(a => a.hidden = !PAGINE_MODO.includes(a.dataset.pagina));
+
+  // ===== AREA STAFF: tutte le atlete =====
+  // Legge l'elenco delle atlete e poi lo storico di ognuna (5 richieste alla volta), solo lettura.
+  let staff = null;            // { atlete: [nome], righe: [{atleta, data, chiave, esercizio, kg}], letti: Date }
+  let staffInCorso = null;
+  let staffAtleta = '';        // atleta scelta nella pagina Atlete ('' = panoramica)
+  let staffEsercizio = '';     // esercizio scelto nella pagina Esercizi
+  let staffEvid = '';          // atleta evidenziata nel confronto
+  // catalogo degli esercizi con il peso: chiave → { nome, blocco, colore }
+  const CATALOGO = {};
+  for (const sc of PALESTRA.schede) for (const b of sc.blocchi) for (const e of b.esercizi)
+    if (e.carico) CATALOGO[e.chiave] ??= { nome: e.nome, blocco: b.nome, colore: coloreBlocco(b.nome) };
+  const infoEs = (chiave, nomeRiga) => CATALOGO[chiave] || { nome: nomeRiga || chiave, blocco: 'Programma precedente', colore: '#9aa4b5' };
+
+  function caricaStaff(forza) {
+    if (staff && !forza) return Promise.resolve(staff);
+    if (staffInCorso) return staffInCorso;
+    staffInCorso = (async () => {
+      const r = await (await fetch(PESI_URL + '?azione=atlete')).json();
+      const atlete = (r.atlete || []).sort((a, b) => a.localeCompare(b, 'it'));
+      const righe = [];
+      let i = 0;
+      async function lavora() {   // ogni "lavoratore" prende la prossima atleta finché non sono finite
+        while (i < atlete.length) {
+          const a = atlete[i++];
+          const s = await chiama({ azione: 'storico', atleta: a, pin: PIN_UNICO });
+          if (!s.ok) throw new Error(s.errore || 'Errore nel leggere ' + a);
+          // stesso esercizio nello stesso giorno: vale l'ultima riga
+          const ultimo = {};
+          for (const x of s.righe) ultimo[x.chiave + '|' + x.data] = { atleta: a, data: x.data, chiave: x.chiave, esercizio: x.esercizio, kg: x.kg };
+          righe.push(...Object.values(ultimo));
+        }
+      }
+      await Promise.all([lavora(), lavora(), lavora(), lavora(), lavora()]);
+      righe.sort((x, y) => x.data.localeCompare(y.data));
+      staff = { atlete, righe, letti: new Date() };
+      return staff;
+    })();
+    staffInCorso.finally(() => { staffInCorso = null; });
+    return staffInCorso;
+  }
+  async function preparaStaff(box) {
+    if (staff) return true;
+    box.innerHTML = '<div class="riquadro">Leggo i pesi di tutte le atlete…</div>';
+    try { await caricaStaff(); return true; }
+    catch (e) { box.innerHTML = `<div class="riquadro"><div class="msg err">Non riesco a leggere i dati (${esc(e.message || 'errore di collegamento')}). Ricarica la pagina.</div></div>`; return false; }
+  }
+  const oraLetti = () => staff.letti.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  const barraLetti = () => `<div class="staff-letti">Dati letti alle ${oraLetti()} <button class="ricarica" data-ricarica>Aggiorna</button></div>`;
+  function collegaRicarica(box, ridisegna) {
+    const b = box.querySelector('[data-ricarica]');
+    if (b) b.onclick = async () => { b.disabled = true; b.textContent = 'Aggiorno…'; try { await caricaStaff(true); } catch (e) {} ridisegna(); };
+  }
+  const delta = (a, b) => { if (!a) return ''; const p = Math.round((b - a) / a * 100); return (p > 0 ? '+' : '') + p + '%'; };
+
+  // Grafico nel tempo (asse X = date, una linea per serie). serie: [{nome, punti:[{data,kg}], colore, spessore, opacita}]
+  function graficoTempo(serie, { W = 600, H = 190 } = {}) {
+    const tutti = serie.flatMap(s => s.punti);
+    if (!tutti.length) return '';
+    const ml = 38, mr = 12, mt = 10, mb = 24, w = W - ml - mr, h = H - mt - mb;
+    let t0 = Math.min(...tutti.map(p => data(p.data).getTime())), t1 = Math.max(...tutti.map(p => data(p.data).getTime()));
+    if (t1 - t0 < 14 * 86400000) { t0 -= 7 * 86400000; t1 += 7 * 86400000; }
+    let lo = Math.min(...tutti.map(p => p.kg)), hi = Math.max(...tutti.map(p => p.kg));
+    // tacche "tonde" sull'asse Y
+    const passi = [1, 2, 2.5, 5, 10, 20, 25, 50, 100];
+    const passo = passi.find(p => (hi - lo) / p <= 4) || 100;
+    lo = Math.max(0, Math.floor(lo / passo) * passo - (hi === lo ? passo : 0)); hi = Math.ceil(hi / passo) * passo + (hi === lo ? passo : 0);
+    if (hi === lo) hi = lo + passo;
+    const X = (d) => ml + (data(d).getTime() - t0) / (t1 - t0) * w;
+    const Y = (k) => mt + h - (k - lo) / (hi - lo) * h;
+    let g = '<g class="griglia">';
+    for (let k = lo; k <= hi + 1e-9; k += passo) g += `<line x1="${ml}" x2="${W - mr}" y1="${Y(k)}" y2="${Y(k)}"/><text x="${ml - 6}" y="${Y(k) + 4}" text-anchor="end">${kgTesto(k)}</text>`;
+    // una tacca all'inizio di ogni mese
+    const m0 = new Date(t0); let m = new Date(m0.getFullYear(), m0.getMonth() + (m0.getDate() > 1 ? 1 : 0), 1);
+    const mesi = [];
+    for (; m.getTime() <= t1; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) mesi.push(new Date(m));
+    const ogni = Math.ceil(mesi.length / 8);
+    mesi.forEach((d, i) => { if (i % ogni) return; const x = X(iso(d)); g += `<text x="${x}" y="${H - 6}" text-anchor="middle">${MESI[d.getMonth()].slice(0, 3)}</text>`; });
+    g += '</g>';
+    const linee = serie.map(s => {
+      const pt = s.punti.map(p => [X(p.data), Y(p.kg), p]);
+      const op = s.opacita ?? 1, sp = s.spessore ?? 2;
+      return `<g opacity="${op}">${pt.length > 1 ? `<polyline points="${pt.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${s.colore}" stroke-width="${sp}" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+        ${pt.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${sp > 2 ? 4.5 : 3.5}" fill="${s.colore}" stroke="var(--carta)" stroke-width="2"><title>${esc(s.nome ? nomeBello(s.nome) + ' · ' : '')}${dataBreve(p[2].data)}: ${kgTesto(p[2].kg)} kg</title></circle>`).join('')}</g>`;
+    }).join('');
+    return `<svg class="tempo" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento dei pesi nel tempo">${g}${linee}</svg>`;
+  }
+
+  // Pagina "Atlete": panoramica oppure una giocatrice
+  async function disegnaStaffAtlete() {
+    const box = document.getElementById('pag-atlete');
+    if (!await preparaStaff(box)) return;
+    const { atlete, righe } = staff;
+    const sel = `<div class="staff-barra"><label class="campo">Atleta<select id="st-atleta"><option value="">Tutte (panoramica)</option>
+      ${atlete.map(a => `<option value="${esc(a)}" ${a === staffAtleta ? 'selected' : ''}>${esc(nomeBello(a))}</option>`).join('')}</select></label>${barraLetti()}</div>`;
+    let corpo;
+    if (!staffAtleta) {
+      const per = atlete.map(a => {
+        const r = righe.filter(x => x.atleta === a);
+        const giorni = new Set(r.map(x => x.data));
+        return { a, giorni: giorni.size, es: new Set(r.map(x => x.chiave)).size, ultima: r.length ? r[r.length - 1].data : '' };
+      });
+      const attive = per.filter(p => p.giorni).length;
+      const ult = righe.length ? righe[righe.length - 1].data : '';
+      corpo = `<div class="tiles">
+          <div class="tile"><span>Atlete che segnano i pesi</span><b>${attive}/${atlete.length}</b></div>
+          <div class="tile"><span>Allenamenti salvati</span><b>${per.reduce((t, p) => t + p.giorni, 0)}</b></div>
+          <div class="tile"><span>Ultimo salvataggio</span><b>${ult ? dataBreve(ult) : '—'}</b></div></div>
+        <div class="riquadro"><h2>Chi segna i pesi</h2><div class="scorri"><table class="tab-dati">
+          <thead><tr><th>Atleta</th><th class="n">Allenamenti</th><th class="n">Esercizi</th><th class="n">Ultimo</th></tr></thead><tbody>
+          ${per.map(p => `<tr data-scegli="${esc(p.a)}"><td>${esc(nomeBello(p.a))}</td><td class="n">${p.giorni || '—'}</td><td class="n">${p.es || '—'}</td><td class="n">${p.ultima ? dataBreve(p.ultima) : 'mai'}</td></tr>`).join('')}
+          </tbody></table></div><p class="palestra-piede">Tocca un'atleta per vedere i suoi andamenti.</p></div>`;
+    } else {
+      const r = righe.filter(x => x.atleta === staffAtleta);
+      if (!r.length) corpo = `<div class="riquadro"><h2>${esc(nomeBello(staffAtleta))}</h2><div style="color:var(--grigio)">Non ha ancora segnato nessun peso.</div></div>`;
+      else {
+        const perEs = {};
+        for (const x of r) (perEs[x.chiave] ??= []).push(x);
+        const chiavi = Object.keys(perEs).sort((a, b) => (CATALOGO[b] ? 1 : 0) - (CATALOGO[a] ? 1 : 0) || infoEs(a).nome.localeCompare(infoEs(b).nome, 'it'));
+        // tabella mese per mese: il peso più alto del mese
+        const mesiAt = [...new Set(r.map(x => x.data.slice(0, 7)))].sort();
+        const nomeMese = (ym) => { const [y, mm] = ym.split('-').map(Number); return MESI[mm - 1].slice(0, 3) + (y !== oggi.getFullYear() ? ' ' + String(y).slice(2) : ''); };
+        corpo = `<div class="tiles">
+            <div class="tile"><span>Allenamenti salvati</span><b>${new Set(r.map(x => x.data)).size}</b></div>
+            <div class="tile"><span>Esercizi</span><b>${chiavi.length}</b></div>
+            <div class="tile"><span>Dal · al</span><b style="font-size:20px">${dataBreve(r[0].data)} · ${dataBreve(r[r.length - 1].data)}</b></div></div>
+          <div class="multipli">${chiavi.map(k => {
+            const v = perEs[k], inf = infoEs(k, v[v.length - 1].esercizio), pr = v[0], ul = v[v.length - 1];
+            return `<div class="grafico-es" style="--c:${inf.colore}"><h4>${esc(inf.nome)}</h4>
+              <div class="info">${v.length > 1 ? `${kgTesto(pr.kg)} → ` : ''}<strong>${kgTesto(ul.kg)} kg</strong>${v.length > 1 ? ` (${delta(pr.kg, ul.kg)})` : ''} · record ${kgTesto(Math.max(...v.map(x => x.kg)))} · ${v.length} ${v.length === 1 ? 'volta' : 'volte'}</div>
+              ${graficoTempo([{ punti: v, colore: inf.colore }], { W: 360, H: 150 })}</div>`;
+          }).join('')}</div>
+          <div class="riquadro"><h2>Mese per mese</h2><div style="color:var(--grigio);font-size:14px;margin-bottom:6px">Il peso più alto usato in ogni mese.</div>
+            <div class="scorri"><table class="tab-dati"><thead><tr><th>Esercizio</th>${mesiAt.map(ym => `<th class="n">${nomeMese(ym)}</th>`).join('')}</tr></thead><tbody>
+            ${chiavi.map(k => `<tr><td>${esc(infoEs(k, perEs[k][0].esercizio).nome)}</td>${mesiAt.map(ym => { const m = perEs[k].filter(x => x.data.startsWith(ym)); return `<td class="n">${m.length ? kgTesto(Math.max(...m.map(x => x.kg))) : '—'}</td>`; }).join('')}</tr>`).join('')}
+            </tbody></table></div></div>`;
+      }
+    }
+    box.innerHTML = sel + corpo;
+    box.querySelector('#st-atleta').onchange = (ev) => { staffAtleta = ev.target.value; disegnaStaffAtlete(); };
+    box.querySelectorAll('[data-scegli]').forEach(tr => tr.onclick = () => { staffAtleta = tr.dataset.scegli; disegnaStaffAtlete(); window.scrollTo({ top: 0 }); });
+    collegaRicarica(box, disegnaStaffAtlete);
+  }
+
+  // misure del grafico grande in base allo schermo (sul telefono più stretto, così le scritte restano leggibili)
+  const larghezzaGrafico = (box) => { const W = Math.max(330, Math.min(900, (box.clientWidth || 900) - 40)); return { W, H: W < 500 ? 240 : 280 }; };
+
+  // Pagina "Esercizi": confronto tra le atlete su un esercizio
+  async function disegnaStaffEsercizi() {
+    const box = document.getElementById('pag-esercizi');
+    if (!await preparaStaff(box)) return;
+    const { atlete, righe } = staff;
+    // esercizi: prima quelli del programma attuale (in ordine di scheda), poi quelli vecchi con dati
+    const elenco = Object.keys(CATALOGO).concat([...new Set(righe.map(x => x.chiave))].filter(k => !CATALOGO[k]));
+    if (!staffEsercizio || !elenco.includes(staffEsercizio)) staffEsercizio = elenco.find(k => righe.some(x => x.chiave === k)) || elenco[0];
+    const k = staffEsercizio, rk = righe.filter(x => x.chiave === k), inf = infoEs(k, rk[0]?.esercizio);
+    const perAt = {};
+    for (const x of rk) (perAt[x.atleta] ??= []).push(x);
+    const conDati = Object.keys(perAt);
+    const senza = atlete.filter(a => !perAt[a]);
+    const righeTab = conDati.map(a => { const v = perAt[a]; return { a, primo: v[0].kg, ultimo: v[v.length - 1].kg, record: Math.max(...v.map(x => x.kg)), volte: v.length, data: v[v.length - 1].data }; })
+      .sort((x, y) => y.ultimo - x.ultimo || x.a.localeCompare(y.a, 'it'));
+    if (staffEvid && !perAt[staffEvid]) staffEvid = '';
+    const max = Math.max(1, ...righeTab.map(r => r.ultimo));
+    const ACCENTO = '#f8fafc';   // l'atleta evidenziata è bianca: si distingue da tutti i colori dei blocchi
+    const gruppi = {};
+    for (const kk of elenco) (gruppi[infoEs(kk).blocco] ??= []).push(kk);
+    let html = `<div class="staff-barra"><label class="campo">Esercizio<select id="st-es">${Object.entries(gruppi).map(([bl, ks]) =>
+        `<optgroup label="${esc(bl)}">${ks.map(kk => `<option value="${esc(kk)}" ${kk === k ? 'selected' : ''}>${esc(infoEs(kk, righe.find(x => x.chiave === kk)?.esercizio).nome)}</option>`).join('')}</optgroup>`).join('')}</select></label>${barraLetti()}</div>`;
+    if (!righeTab.length) {
+      html += `<div class="riquadro"><h2>${esc(inf.nome)}</h2><div style="color:var(--grigio)">Nessuna atleta ha ancora segnato questo esercizio.</div></div>`;
+    } else {
+      const serie = righeTab.slice().reverse().map(r => ({ nome: r.a, punti: perAt[r.a], colore: r.a === staffEvid ? ACCENTO : inf.colore,
+        spessore: r.a === staffEvid ? 3 : 1.5, opacita: staffEvid ? (r.a === staffEvid ? 1 : 0.25) : 0.75 }));
+      if (staffEvid) serie.push(serie.splice(serie.findIndex(s => s.nome === staffEvid), 1)[0]);   // l'evidenziata sopra le altre
+      html += `<div class="riquadro"><h2>${esc(inf.nome)}</h2>
+          <div class="legenda-mini"><span><i style="background:${inf.colore}"></i>Ogni linea è un'atleta</span>${staffEvid ? `<span><i style="background:${ACCENTO}"></i>${esc(nomeBello(staffEvid))}</span>` : '<span>Tocca un nome qui sotto per evidenziarla</span>'}</div>
+          ${graficoTempo(serie, larghezzaGrafico(box))}</div>
+        <div class="riquadro"><h2>Ultimo peso</h2><div class="barre">
+          ${righeTab.map(r => `<div class="barra-riga ${r.a === staffEvid ? 'evid' : ''}" data-evid="${esc(r.a)}" style="--c:${r.a === staffEvid ? ACCENTO : inf.colore}">
+            <span class="nome">${esc(nomeBello(r.a))}</span><span><span class="tr" style="display:block;width:${(r.ultimo / max * 100).toFixed(1)}%"></span></span>
+            <span class="v">${kgTesto(r.ultimo)} kg${r.volte > 1 ? `<small>${delta(r.primo, r.ultimo)}</small>` : ''}</span></div>`).join('')}
+        </div></div>
+        <div class="riquadro"><h2>Tabella</h2><div class="scorri"><table class="tab-dati">
+          <thead><tr><th>Atleta</th><th class="n">Primo</th><th class="n">Ultimo</th><th class="n">Variazione</th><th class="n">Record</th><th class="n">Volte</th><th class="n">Ultima</th></tr></thead><tbody>
+          ${righeTab.map(r => `<tr data-evid="${esc(r.a)}" class="${r.a === staffEvid ? 'evid' : ''}" style="cursor:pointer"><td>${esc(nomeBello(r.a))}</td><td class="n">${kgTesto(r.primo)}</td><td class="n">${kgTesto(r.ultimo)}</td><td class="n">${r.volte > 1 ? delta(r.primo, r.ultimo) : '—'}</td><td class="n">${kgTesto(r.record)}</td><td class="n">${r.volte}</td><td class="n">${dataBreve(r.data)}</td></tr>`).join('')}
+          </tbody></table></div>
+          ${senza.length ? `<p class="palestra-piede">Non ancora segnato da: ${senza.map(a => esc(nomeBello(a))).join(', ')}</p>` : ''}</div>`;
+    }
+    box.innerHTML = html;
+    box.querySelector('#st-es').onchange = (ev) => { staffEsercizio = ev.target.value; staffEvid = ''; disegnaStaffEsercizi(); };
+    box.querySelectorAll('[data-evid]').forEach(el => el.onclick = () => { staffEvid = staffEvid === el.dataset.evid ? '' : el.dataset.evid; disegnaStaffEsercizi(); });
+    collegaRicarica(box, disegnaStaffEsercizi);
+  }
 
   disegnaPalestra();
   mostraPagina();

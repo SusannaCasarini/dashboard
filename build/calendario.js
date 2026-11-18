@@ -133,8 +133,38 @@ const pagina = modello
   .replace('__PALESTRA__', fs.readFileSync(path.join(__dirname, 'palestra.json'), 'utf8'))
   .replace('__PESI_URL__', JSON.stringify(PESI_URL))
   .replace('__AGGIORNATO__', ora);
+// pagina pubblica: modo "atlete" (I miei pesi + Andamento)
+const paginaAtlete = pagina.replace('__MODO__', JSON.stringify('atlete'));
 fs.mkdirSync(path.join(RADICE, 'calendario'), { recursive: true });
-fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), pagina);
+fs.writeFileSync(path.join(RADICE, 'calendario', 'index.html'), paginaAtlete);
+
+// Area riservata preparatore e fisioterapista: stessa pagina in modo "staff" (Atlete + Esercizi al posto dei pesi personali),
+// cifrata con password (staticrypt, come direttivo e coach) in preparazione/index.html.
+// La password si passa con BFD_PW_STAFF; senza password la pagina staff NON viene rigenerata (resta quella di prima).
+if (process.env.BFD_PW_STAFF) {
+  const { execFileSync } = require('child_process');   // execFileSync: lancia staticrypt e aspetta che finisca
+  const paginaStaff = pagina.replace('__MODO__', JSON.stringify('staff'))
+    .replace(/(src|href)="(logo|favicon)\.png"/g, '$1="../calendario/$2.png"')   // logo e icona restano nella cartella del calendario
+    .replace('<title>Calendario Shout 2027</title>', '<title>Shout · Preparazione</title>');
+  const tmp = path.join(require('os').tmpdir(), 'bfd-preparazione');
+  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.mkdirSync(tmp, { recursive: true });
+  fs.writeFileSync(path.join(tmp, 'index.html'), paginaStaff);
+  execFileSync(path.join(RADICE, 'node_modules', '.bin', 'staticrypt'), [
+    path.join(tmp, 'index.html'), '-p', process.env.BFD_PW_STAFF, '-d', path.join(RADICE, 'preparazione'),
+    '--short', '--remember', '30',
+    '--template-title', 'Shout · Preparazione',
+    '--template-instructions', 'Area riservata a preparatore e fisioterapista. Inserisci la password.',
+    '--template-placeholder', 'Password', '--template-button', 'Entra',
+    '--template-remember', 'Ricordami su questo dispositivo', '--template-error', 'Password errata',
+    '--template-toggle-show', 'Mostra password', '--template-toggle-hide', 'Nascondi password',
+    '--template-color-primary', '#f87171', '--template-color-secondary', '#0f1420'
+  ], { cwd: RADICE, stdio: 'inherit' });
+  fs.rmSync(tmp, { recursive: true, force: true });
+  console.log('Area preparazione rigenerata (cifrata) in preparazione/index.html');
+} else {
+  console.log('ATTENZIONE: BFD_PW_STAFF non impostata, area preparazione NON aggiornata');
+}
 eventi.sort((x, y) => x.inizio.localeCompare(y.inizio));
 console.log(`Calendario generato: ${eventi.length} impegni, ${allenamenti.length} giorni infrasettimanali`);
 for (const e of eventi) console.log(` ${e.inizio} → ${e.fine}  [${e.tipo}]  ${e.titolo}${e.daConfermare ? ' (da confermare)' : ''}`);
