@@ -98,6 +98,7 @@ for (const r of righe) {
   const gio = (r[4] || '').trim().split(/\s+/)[0].toLowerCase();
   const daGiovedi = gio && testo.toLowerCase().startsWith(gio) && !/carri|fede/.test(gio);
   const soloSabato = /sabato/i.test(testo);
+  const soloDomenica = /domenica/i.test(testo);   // "Raduno domenica" = solo la domenica
   if (/pasqua/i.test(testo)) {   // Pasqua = Paganello (Rimini): sabato, domenica e Pasquetta
     eventi.push({ titolo: 'Paganello', tipo: 'evento', inizio: iso(sabato), fine: iso(piu(domenica, 1)), daConfermare: false });
     continue;
@@ -105,7 +106,7 @@ for (const r of righe) {
   eventi.push({
     titolo: titolo(testo),
     tipo: tipo(testo),
-    inizio: iso(daGiovedi ? giovedi : sabato),
+    inizio: iso(daGiovedi ? giovedi : soloDomenica ? domenica : sabato),
     fine: iso(soloSabato ? sabato : domenica),
     daConfermare: testo.includes('?'),
   });
