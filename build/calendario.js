@@ -65,6 +65,8 @@ function titolo(t) {
 const eventi = [];
 const allenamenti = [];
 const INIZIO_ALLENAMENTI = '2027-01-11';
+// Giorni senza allenamento confermati da Susanna: viola con la P, "Pausa" (gli altri "Pod/Pausa" restano allenamenti)
+const PAUSE = ['2027-01-25'];   // lunedì dopo i tryouts
 let mese = -1;
 for (const r of righe) {
   const a = (r[0] || '').trim();
@@ -90,7 +92,8 @@ for (const r of righe) {
     }
     const primaParola = v.split(/\s+/)[0].toLowerCase();
     if (primaParola && testo.toLowerCase().startsWith(primaParola) && /[a-z]/.test(primaParola)) continue;
-    allenamenti.push({ data: giorno, tipo: 'allenamento' });   // Pod/Pausa compresi: li aggiornano loro di volta in volta
+    // Pod/Pausa = allenamento normale, tranne i giorni che Susanna ha confermato come pausa (lista PAUSE)
+    allenamenti.push({ data: giorno, tipo: PAUSE.includes(giorno) ? 'pod' : 'allenamento' });
   }
   if (!testo) continue;
   const sabato = piu(lunedi, 5), domenica = piu(lunedi, 6), giovedi = piu(lunedi, 3);

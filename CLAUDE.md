@@ -24,7 +24,7 @@ Repository PUBBLICO: non scrivere mai qui dati dei fogli, nomi, importi o passwo
 - Foglio "Calendario Shout" `1y2ybw3MQ2UsDSXdb1PKPlWCbfmnGKwkXaxfrNtr7Iv8`: leggi `Foglio1!A1:F200` e salva `values` in `/tmp/bfd-dati/calendario.json` (mai nel repository).
 - `node build/calendario.js /tmp/bfd-dati/calendario.json`, controlla l'elenco stampato, poi commit e push di `calendario/index.html`.
 - Si pubblica solo la colonna WEEKEND: niente note, niente allenamenti settimanali.
-- Regole colori e allenamenti infrasettimanali (orari nel modello, Pod/Pausa = allenamento normale, "Incontro …" = evento Nazionale con orario), impegni extra (inizio allenamenti 11/1, raduno Shout 11-12/9, Champions 24-26/9, fine EUC 10/7) sono in `build/calendario.js`.
+- Regole colori e allenamenti infrasettimanali (orari nel modello, Pod/Pausa = allenamento normale tranne i giorni nella lista PAUSE = viola "Pausa", "Incontro …" = evento Nazionale con orario), impegni extra (inizio allenamenti 11/1, raduno Shout 11-12/9, Champions 24-26/9, fine EUC 10/7) sono in `build/calendario.js`.
 - Pagina **Palestra** (stessa pagina, scheda `#palestra`): le schede sono in `build/palestra.json`. Quando Susanna manda un programma nuovo, trascrivilo lì (blocchi → esercizi con serie e recupero), aggiorna "aggiornato", rigenera e pubblica.
 - Colori dei blocchi (Mobilità, Core, Plyo…) in `COLORI_BLOCCO` nel modello. In `palestra.json` ogni esercizio ha una `chiave` fissa
   (stessa chiave = stesso storico anche quando cambia il programma) e `carico: true` se si segna il peso. Programma nuovo:
