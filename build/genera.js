@@ -39,17 +39,24 @@ const bilancio = SOLO_COACH ? [] : leggi('bilancio');
 const pagamenti = SOLO_COACH ? [] : leggi('pagamenti');
 const guadagni = SOLO_COACH ? [] : leggi('guadagni');
 const tesserati = leggi('tesserati');
+// Foglio "Certificato Agonistico": è lì che Susanna aggiorna i certificati CARTACEI (A Cognome, B Nome, C Squadra, D Cartaceo)
+const certificato = leggi('certificato');
 
 // Data e ora di Roma, es. "17/11/2026 15:30". toLocaleString formatta la data secondo la lingua indicata.
 const letti = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
 
 // ---------- Controlli: se la struttura dei fogli è cambiata mi fermo invece di pubblicare dati sbagliati ----------
 const intest = (tesserati[0] || []).map((x) => String(x).trim().toUpperCase());
-// Colonne attese: A Cognome, C Squadra, G Advanced, L Firma modulo, M Note modulo, O Cert. cartaceo, P Cert. Golee
+// Colonne attese (dal 23/11/2026): A Cognome, C Squadra, G Advanced, L Cert. cartaceo (copia), M Cert. Golee,
+// N Firma modulo, O Note modulo, P Note (economiche: non usate per i coach)
 if (intest[0] !== 'COGNOME' || intest[2] !== 'SQUADRA OPEN/WOMEN' || intest[6] !== 'ADVANCED' ||
-    intest[11] !== 'FIRMA MODULO' || intest[12] !== 'NOTE MODULO' ||
-    intest[14] !== 'CERTIFICATO CARTACEO' || intest[15] !== 'CERTIFICATO GOLEE') {
+    intest[11] !== 'CERTIFICATO CARTACEO' || intest[12] !== 'CERTIFICATO GOLEE' ||
+    intest[13] !== 'FIRMA MODULO' || intest[14] !== 'NOTE MODULO') {
   throw new Error('Il foglio Tesserati ha cambiato colonne: intestazioni trovate ' + JSON.stringify(tesserati[0]));
+}
+const intestCert = (certificato[0] || []).map((x) => String(x).trim().toUpperCase());
+if (intestCert[0] !== 'COGNOME' || intestCert[1] !== 'NOME' || intestCert[3] !== 'CERTIFICATO CARTACEO') {
+  throw new Error('Il foglio Certificato Agonistico ha cambiato colonne: intestazioni trovate ' + JSON.stringify(certificato[0]));
 }
 if (!SOLO_COACH && String((bilancio[1] || [])[0]).trim() !== 'Conto') throw new Error('Il foglio Bilancio ha cambiato struttura');
 
@@ -76,6 +83,28 @@ function codiceQuota(secondaRata, importo, pagato, squadra) {
   return PRIME.includes(squadra) ? 'da_pagare_31_01' : 'da_pagare';
 }
 
+// Certificato cartaceo: lo prendo dal foglio "Certificato Agonistico", cercando il giocatore per
+// cognome + nome + squadra; se il nome non coincide (es. nome mancante in uno dei due fogli) per cognome + squadra,
+// purché ce ne sia uno solo. Se non lo trovo uso la colonna L di Tesserati e lo scrivo nel riepilogo.
+const pulisci = (x) => String(x ?? '').trim().toUpperCase();
+const perNome = new Map();
+const perCognome = new Map();
+for (const r of certificato.slice(1)) {
+  if (!pulisci(r[0])) continue;
+  perNome.set(pulisci(r[0]) + '|' + pulisci(r[1]) + '|' + pulisci(r[2]), vero(r[3]));
+  const k = pulisci(r[0]) + '|' + pulisci(r[2]);
+  perCognome.set(k, perCognome.has(k) ? null : vero(r[3]));   // null = più giocatori con lo stesso cognome
+}
+const nonTrovati = [];
+function cartaceoDi(r) {
+  const kNome = pulisci(r[0]) + '|' + pulisci(r[1]) + '|' + pulisci(r[2]);
+  if (perNome.has(kNome)) return perNome.get(kNome);
+  const kCog = pulisci(r[0]) + '|' + pulisci(r[2]);
+  if (perCognome.has(kCog) && perCognome.get(kCog) !== null) return perCognome.get(kCog);
+  nonTrovati.push(String(r[0]).trim() + ' ' + String(r[1] ?? '').trim());
+  return vero(r[11]);   // colonna L di Tesserati come riserva
+}
+
 const giocatori = [];
 for (const r of tesserati.slice(1)) {
   const cognome = String(r[0] ?? '').trim();
@@ -87,12 +116,12 @@ for (const r of tesserati.slice(1)) {
     squadra,
     mixed: String(r[3] ?? '').trim(),
     quota: codiceQuota(r[7], r[8], r[9], squadra),   // H, I, J
-    modulo: vero(r[11]),                            // L: modulo di ammissione a socio firmato
-    notaModulo: String(r[12] ?? '').trim(),         // M: note sul modulo (es. "una sola firma", "Non ha Golee")
-    cartaceo: vero(r[14]),                          // O
-    golee: vero(r[15]),                             // P
+    modulo: vero(r[13]),                            // N: modulo di ammissione a socio firmato
+    notaModulo: String(r[14] ?? '').trim(),         // O: note sul modulo (es. "una sola firma", "Non ha Golee")
+    cartaceo: cartaceoDi(r),                        // dal foglio Certificato Agonistico
+    golee: vero(r[12]),                             // M
     advanced: String(r[6] ?? '').trim()             // G: data di scadenza come testo
-    // La colonna N (Note) NON esce mai: contiene informazioni economiche.
+    // La colonna P (Note) NON esce mai: contiene informazioni economiche.
   });
 }
 const coach = { aggiornato: letti, giocatori };
@@ -135,4 +164,5 @@ function costruisci(nome, dati, titolo) {
 
 if (!SOLO_COACH) costruisci('direttivo', direttivo, 'BFD · Situazione economica');
 costruisci('coach', coach, 'BFD · Situazione squadre');
+if (nonTrovati.length) console.log('Non trovati in Certificato Agonistico (uso Tesserati colonna L): ' + nonTrovati.join(', '));
 console.log('Fatto: ' + giocatori.length + ' giocatori nella dashboard coach, dati letti il ' + letti);

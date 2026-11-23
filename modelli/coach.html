@@ -356,7 +356,8 @@
       scheda.appendChild(fila);
 
       // Note sul modulo: "Non ha Golee" in rosso, le altre normali
-      if (g.notaModulo) {
+      // "No file" non lo scrivo: si capisce già dal riquadro Modulo rosso
+      if (g.notaModulo && !/^no file$/i.test(g.notaModulo.trim())) {
         const note = document.createElement('div');
         note.className = 'note';
         const n = document.createElement('div');
