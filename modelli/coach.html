@@ -58,14 +58,16 @@
       transition: transform .3s ease, width .3s ease, background .3s; }
     .giocatori { animation: entra .25s ease; }
     @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    /* Filtri "Mostra": una fila di pulsanti, se ne sceglie uno alla volta */
+    .filtri-titolo { width: 100%; font-size: 13px; color: var(--grigio); margin-bottom: -4px; }
+    .filtri { display: flex; flex-wrap: wrap; gap: 8px; }
     .filtro {
-      display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
-      background: var(--carta2); border: 1px solid #3a4763; border-radius: 10px;
-      font-size: 14px; font-weight: 600; cursor: pointer; user-select: none;
+      display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
+      background: var(--carta2); border: 1px solid #3a4763; border-radius: 22px; color: var(--testo);
+      font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; user-select: none;
     }
-    .filtro input { width: 20px; height: 20px; accent-color: var(--accento); }
-    .filtro:has(input:checked) { border-color: var(--accento); background: rgba(59,130,246,.15); }
-    .filtro:focus-within { outline: 3px solid rgba(59,130,246,.35); }
+    .filtro[aria-pressed="true"] { border-color: var(--accento); background: rgba(59,130,246,.2); color: #fff; }
+    .filtro:focus-visible { outline: 3px solid rgba(59,130,246,.35); }
 
     /* Contatori: griglia 2 colonne su telefono, 5 su schermo largo */
     /* Riquadri di riepilogo piccoli: numero + etichetta su una riga */
@@ -141,10 +143,16 @@
     </nav>
 
     <div class="comandi">
-      <label class="filtro">
-        <input type="checkbox" id="soloDaSistemare">
-        Solo chi ha qualcosa da sistemare
-      </label>
+      <div class="filtri-titolo">Mostra</div>
+      <div class="filtri" id="filtri" role="group" aria-label="Mostra">
+        <button type="button" class="filtro" data-f="tutti" aria-pressed="true">Tutti</button>
+        <button type="button" class="filtro" data-f="sistemare" aria-pressed="false">Qualcosa da sistemare</button>
+        <button type="button" class="filtro" data-f="quota" aria-pressed="false">Quota</button>
+        <button type="button" class="filtro" data-f="modulo" aria-pressed="false">Modulo</button>
+        <button type="button" class="filtro" data-f="cartaceo" aria-pressed="false">Certificato Cartaceo</button>
+        <button type="button" class="filtro" data-f="golee" aria-pressed="false">Certificato Golee</button>
+        <button type="button" class="filtro" data-f="advanced" aria-pressed="false">Advanced</button>
+      </div>
     </div>
 
     <div class="contatori" id="contatori"></div>
@@ -191,11 +199,31 @@
       - style.setProperty('--col', colore): dà a ogni squadra il suo colore.
     */
     const COLORI_SQUADRE = ['#60a5fa', '#f472b6', '#a78bfa', '#fb923c', '#4ade80', '#facc15', '#2dd4bf', '#38bdf8', '#f87171', '#c084fc', '#a3e635', '#fbbf24', '#e879f9'];
-    let SCELTA = '';   // squadra scelta, es. "S:Shout" (S: = Open/Women, M: = Mixed)
+    let SCELTA = '';   // squadra scelta, es. "S:Shout" (S: = Open/Women, M: = Mixed, T: = tutti gli atleti)
+    let FILTRO = 'tutti';   // cosa mostrare: tutti, sistemare, quota, modulo, cartaceo, golee, advanced
+
+    // Per ogni filtro, la prova che dice se un giocatore va mostrato
+    const FILTRI = {
+      tutti: () => true,
+      sistemare: g => daSistemare(g),
+      quota: g => g.quota.livello !== 'verde',
+      modulo: g => !g.modulo || !!g.notaModulo,
+      cartaceo: g => !g.cartaceo,
+      golee: g => !g.golee,
+      advanced: g => g.advanced.livello !== 'verde'
+    };
+
+    // Squadre che non hanno una pagina propria: All Inclusive compare solo in "Tutti"
+    const SENZA_PAGINA = ['All Inclusive'];
+    // Squadre da mettere in fondo all'elenco delle Open/Women
+    const IN_FONDO = ['Altri'];
 
     function riempiMenu() {
       const track = document.getElementById('track');
-      const squadre = [...new Set(tutti.map(g => g.squadra))].filter(Boolean).sort();
+      // includes(x): vero se x è nell'elenco; il ! davanti significa "non"
+      const tutteLeSquadre = [...new Set(tutti.map(g => g.squadra))].filter(Boolean).sort();
+      const squadre = tutteLeSquadre.filter(n => !SENZA_PAGINA.includes(n) && !IN_FONDO.includes(n))
+        .concat(IN_FONDO.filter(n => tutteLeSquadre.includes(n)));   // concat: attacca in fondo "Altri"
       const mixed = [...new Set(tutti.map(g => g.mixed))].filter(Boolean).sort();
       let i = 0;
       const aggiungi = (nome, prefisso) => {
@@ -209,12 +237,19 @@
       squadre.forEach(n => aggiungi(n, 'S:'));
       if (mixed.length) { const sep = document.createElement('span'); sep.className = 'sep'; sep.textContent = 'Mixed'; track.appendChild(sep); }
       mixed.forEach(n => aggiungi(n, 'M:'));
+      // Ultima pagina: tutti gli atleti di tutte le squadre (All Inclusive compresa)
+      const sep2 = document.createElement('span'); sep2.className = 'sep'; track.appendChild(sep2);
+      aggiungi('Tutti gli atleti', 'T:');
 
       // Se nel link c'è già una squadra (es. ...#S:Shout) la riapro; location.hash = la parte dopo #
       const salvata = decodeURIComponent(location.hash.slice(1));
       const valori = [...track.querySelectorAll('.sq-tab')].map(b => b.dataset.v);
       SCELTA = valori.includes(salvata) ? salvata : valori[0];
-      document.getElementById('soloDaSistemare').addEventListener('change', disegna);
+      document.querySelectorAll('.filtro').forEach(b => b.addEventListener('click', () => {
+        FILTRO = b.dataset.f;
+        document.querySelectorAll('.filtro').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        disegna();
+      }));
       window.addEventListener('resize', muoviIndicatore);
       aggiornaBarra();
     }
@@ -266,9 +301,11 @@
     function disegna() {
       const scelta = SCELTA;
       const eMixed = scelta.startsWith('M:');
+      const eTutti = scelta.startsWith('T:');
       const nomeSquadra = scelta.slice(2);
 
-      let lista = tutti.filter(g => eMixed ? g.mixed === nomeSquadra : g.squadra === nomeSquadra);
+      let lista = eTutti ? tutti.slice()   // slice(): copia dell'elenco intero
+        : tutti.filter(g => eMixed ? g.mixed === nomeSquadra : g.squadra === nomeSquadra);
       lista.sort((a, b) => a.cognome.localeCompare(b.cognome, 'it'));
 
       // Contatori calcolati su tutta la squadra (prima del filtro)
@@ -282,16 +319,17 @@
         { n: conta(g => g.advanced.livello !== 'verde'), testo: 'Advanced da sistemare', livello: 'rosso' }
       ]);
 
-      if (document.getElementById('soloDaSistemare').checked) lista = lista.filter(daSistemare);
+      lista = lista.filter(FILTRI[FILTRO]);
 
       const area = document.getElementById('giocatori');
       area.innerHTML = '';
       area.style.animation = 'none'; void area.offsetWidth; area.style.animation = '';   // fa ripartire la dissolvenza
       if (!lista.length) {
-        area.innerHTML = '<div class="messaggio">Nessun giocatore da mostrare 🎉</div>';
+        area.innerHTML = '<div class="messaggio">Nessun giocatore da mostrare con questo filtro 🎉</div>';
         return;
       }
-      lista.forEach(g => area.appendChild(schedaGiocatore(g, eMixed)));
+      // Nelle Mixed e in "Tutti" scrivo accanto al nome anche la squadra di club
+      lista.forEach(g => area.appendChild(schedaGiocatore(g, eMixed || eTutti)));
     }
 
     // disegnaContatori: crea i riquadri con i numeri in cima
