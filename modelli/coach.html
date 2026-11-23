@@ -100,6 +100,29 @@
     .giocatore .nome .nome-proprio { font-weight: 500; }
     .giocatore .nome small { font-weight: 400; color: var(--grigio); font-size: 13px; margin-left: 6px; }
 
+    /* Scheda chiusa: riga toccabile con nome + letterine colorate; aperta: compaiono rettangolini e note */
+    .giocatore { padding: 0 !important; overflow: hidden; align-self: start; }
+    .testa { width: 100%; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 10px 12px; background: none; border: 0;
+      color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .testa:focus-visible { outline: 3px solid rgba(59,130,246,.45); outline-offset: -3px; border-radius: 12px; }
+    .testa .nome { flex: 1 1 auto; min-width: 0; margin: 0 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lettere { display: flex; gap: 3px; flex: 0 0 auto; }
+    .lettera { min-width: 24px; height: 22px; padding: 0 3px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11.5px; font-weight: 800; letter-spacing: .02em; border: 1.5px solid transparent; }
+    .lettera.verde { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.4); color: #86efac; }
+    .lettera.rosso { background: rgba(248,113,113,.17); border-color: rgba(248,113,113,.45); color: #fca5a5; }
+    .lettera.giallo { background: rgba(250,204,21,.15); border-color: rgba(250,204,21,.45); color: #fde68a; }
+    .lettera.attesa { background: transparent; border-color: #facc15; color: #fde68a; }
+    .testa .freccia { color: var(--grigio); font-size: 12px; transition: transform .2s; flex: 0 0 auto; }
+    .testa[aria-expanded="true"] .freccia { transform: rotate(180deg); }
+    .dettagli { padding: 0 12px 12px; }
+    @media (max-width: 400px) {
+      .testa { padding: 10px 8px; gap: 6px; }
+      .testa .nome { font-size: 15.5px; }
+      .lettera { min-width: 21px; font-size: 11px; }
+      .lettere { gap: 2px; }
+    }
+
     /* Rettangolini delle voci da controllare: 5 in fila, pieni di colore.
        Ognuno ha icona + nome della voce + stato in breve, così si legge anche senza distinguere i colori. */
     .rettangoli { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
@@ -196,6 +219,7 @@
         <span><i style="background:rgba(248,113,113,.35);border:1px solid #fca5a5"></i>✗ da sistemare</span>
         <span><i style="background:rgba(250,204,21,.35);border:1px solid #fde68a"></i>! Advanced in scadenza entro un mese</span>
         <span><i style="border:1.5px solid #facc15"></i>○ quota da pagare, c'è ancora tempo</span>
+        <span style="color:var(--grigio)">Lettere accanto al nome: <b>Q</b> quota · <b>M</b> modulo · <b>CC</b> certificato cartaceo · <b>CG</b> certificato Golee · <b>A</b> Advanced. Tocca il nome per vedere i dettagli.</span>
       </div>
     </div>
 
@@ -473,6 +497,16 @@
       const scheda = document.createElement('div');
       scheda.className = 'giocatore';
 
+      // Il livello di ogni voce (verde/rosso/giallo/contorno giallo), usato sia per le letterine sia per i rettangolini
+      const notaVera = g.notaModulo && !/^no file$/i.test(g.notaModulo.trim());   // "No file" non conta come nota da leggere
+      const livModulo = g.modulo && !notaVera ? 'verde' : 'rosso';   // modulo firmato ma con una nota = da controllare
+
+      // --- Riga chiusa: un pulsante con nome e letterine; toccandolo si apre/chiude la scheda ---
+      const testa = document.createElement('button');
+      testa.type = 'button';
+      testa.className = 'testa';
+      testa.setAttribute('aria-expanded', 'false');
+
       const nome = document.createElement('div');
       nome.className = 'nome';
       const cog = document.createElement('span');
@@ -482,27 +516,59 @@
       nom.className = 'nome-proprio';
       nom.textContent = g.nome ? ' ' + maiuscoloIniziale(g.nome) : '';
       nome.append(cog, nom);                              // append: aggiunge gli elementi uno dopo l'altro
-      if (eMixed) { // nelle squadre mixed mostro anche la squadra di club
+      if (eMixed) { // nelle squadre mixed e in "Tutti" mostro anche la squadra di club
         const sq = document.createElement('small');
         sq.textContent = g.squadra;
         nome.appendChild(sq);
       }
-      scheda.appendChild(nome);
+
+      // Letterine: Q quota, M modulo, CC certificato cartaceo, CG certificato Golee, A Advanced
+      const lettere = document.createElement('span');
+      lettere.className = 'lettere';
+      [
+        ['Q', g.quota.livello, 'Quota: ' + g.quota.testo],
+        ['M', livModulo, g.modulo ? (notaVera ? 'Modulo firmato, da controllare' : 'Modulo firmato') : 'Modulo mancante'],
+        ['CC', g.cartaceo ? 'verde' : 'rosso', g.cartaceo ? 'Certificato cartaceo consegnato' : 'Certificato cartaceo mancante'],
+        ['CG', g.golee ? 'verde' : 'rosso', g.golee ? 'Certificato Golee caricato' : 'Certificato Golee mancante'],
+        ['A', g.advanced.livello, 'Advanced: ' + g.advanced.testo]
+      ].forEach(([sigla, livello, frase]) => {
+        const l = document.createElement('span');
+        l.className = 'lettera ' + livello;
+        l.textContent = sigla;
+        l.title = frase;
+        lettere.appendChild(l);
+      });
+      const freccia = document.createElement('span');
+      freccia.className = 'freccia';
+      freccia.setAttribute('aria-hidden', 'true');
+      freccia.textContent = '▼';
+      testa.append(nome, lettere, freccia);
+      scheda.appendChild(testa);
+
+      // --- Parte che si apre: rettangolini e note ---
+      const dettagli = document.createElement('div');
+      dettagli.className = 'dettagli';
+      dettagli.hidden = true;
+      testa.addEventListener('click', () => {
+        dettagli.hidden = !dettagli.hidden;
+        testa.setAttribute('aria-expanded', String(!dettagli.hidden));
+      });
 
       const fila = document.createElement('div');
       fila.className = 'rettangoli';
       fila.append(
         rettangolo('Quota', g.quota.breve, g.quota.livello, g.quota.testo),
-        rettangolo('Modulo', g.modulo ? 'Firmato' : 'Manca', g.modulo ? 'verde' : 'rosso', g.modulo ? 'Modulo firmato' : 'Modulo mancante'),
+        // Modulo firmato ma con una nota (es. "una sola firma"): rosso "Controllare", la nota è scritta sotto
+        rettangolo('Modulo', g.modulo ? (notaVera ? 'Controllare' : 'Firmato') : 'Manca', livModulo,
+          g.modulo ? (notaVera ? 'Modulo firmato, da controllare' : 'Modulo firmato') : 'Modulo mancante'),
         rettangolo('Certificato Cartaceo', g.cartaceo ? 'Sì' : 'Manca', g.cartaceo ? 'verde' : 'rosso', g.cartaceo ? 'Certificato cartaceo consegnato' : 'Certificato cartaceo mancante'),
         rettangolo('Certificato Golee', g.golee ? 'Sì' : 'Manca', g.golee ? 'verde' : 'rosso', g.golee ? 'Certificato caricato su Golee' : 'Certificato non caricato su Golee'),
         rettangolo('Advanced', g.advanced.breve, g.advanced.livello, 'Advanced: ' + g.advanced.testo)
       );
-      scheda.appendChild(fila);
+      dettagli.appendChild(fila);
 
-      // Note sul modulo: "Non ha Golee" in rosso, le altre normali
-      // "No file" non lo scrivo: si capisce già dal riquadro Modulo rosso
-      if (g.notaModulo && !/^no file$/i.test(g.notaModulo.trim())) {
+      // Note sul modulo: "Non ha Golee" in rosso, le altre normali ("No file" non lo scrivo)
+      if (notaVera) {
         const note = document.createElement('div');
         note.className = 'note';
         const n = document.createElement('div');
@@ -516,8 +582,9 @@
           n.append(etichetta, document.createTextNode(g.notaModulo));   // createTextNode: un pezzo di testo semplice
         }
         note.appendChild(n);
-        scheda.appendChild(note);
+        dettagli.appendChild(note);
       }
+      scheda.appendChild(dettagli);
       return scheda;
     }
 
