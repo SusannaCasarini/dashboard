@@ -58,8 +58,19 @@
       transition: transform .3s ease, width .3s ease, background .3s; }
     .giocatori { animation: entra .25s ease; }
     @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-    /* Filtri "Mostra": una fila di pulsanti, se ne sceglie uno alla volta */
-    .filtri-titolo { width: 100%; font-size: 13px; color: var(--grigio); margin-bottom: -4px; }
+    [hidden] { display: none !important; }   /* gli elementi nascosti restano nascosti anche se hanno display: flex */
+    /* Barra compatta sopra l'elenco: riassunto in una riga + pulsanti Filtro e Legenda che aprono un pannello */
+    .barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .riassunto { flex: 1 1 auto; font-size: 14px; color: var(--grigio); min-width: 0; }
+    .riassunto b { color: var(--testo); }
+    .riassunto .rosso { color: var(--rosso); }
+    .apri { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 22px;
+      background: var(--carta2); border: 1px solid #3a4763; color: var(--testo); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .apri[aria-expanded="true"], .apri.attivo { border-color: var(--accento); background: rgba(59,130,246,.2); }
+    .apri .freccia { font-size: 11px; transition: transform .2s; }
+    .apri[aria-expanded="true"] .freccia { transform: rotate(180deg); }
+    .pannello { background: var(--carta); border: 1px solid var(--bordo); border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+    /* Filtri: una fila di pulsanti, se ne sceglie uno alla volta */
     .filtri { display: flex; flex-wrap: wrap; gap: 8px; }
     .filtro {
       display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
@@ -120,10 +131,26 @@
     .nota.rossa { color: var(--rosso); border-left-color: var(--rosso); font-weight: 600; }
 
     /* Legenda dei colori sotto i contatori */
-    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--grigio); margin: -6px 0 14px; }
+    .legenda { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--testo); }
     .legenda span { display: inline-flex; align-items: center; gap: 6px; }
     .legenda i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; box-sizing: border-box; }
 
+    /* Pagina Riepilogo: una scheda per squadra con i numeri */
+    .riepilogo { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 700px) { .riepilogo { grid-template-columns: repeat(2, 1fr); } }
+    .riep { background: var(--carta); border: 1px solid var(--bordo); border-radius: 14px; padding: 12px 14px; }
+    .riep.totale { border-color: var(--accento); }
+    @media (min-width: 700px) { .riep.totale { grid-column: 1 / -1; } }
+    .riep-testa { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+    .riep-nome { font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--testo); font: inherit; font-weight: 700; font-size: 17px; padding: 0; text-align: left; }
+    button.riep-nome { cursor: pointer; text-decoration: underline; text-decoration-color: var(--bordo); text-underline-offset: 4px; }
+    .riep-tot { font-size: 13px; color: var(--grigio); white-space: nowrap; }
+    .riep-numeri { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    @media (min-width: 1000px) { .riep.totale .riep-numeri { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+    .riep-n { background: var(--carta2); border-radius: 8px; padding: 6px 4px; text-align: center; min-width: 0; }
+    .riep-n .numero { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .riep-n .etichetta { font-size: 11.5px; color: var(--grigio); line-height: 1.2; }
+    .riep-n.verde .numero { color: var(--verde); } .riep-n.giallo .numero { color: var(--giallo); } .riep-n.rosso .numero { color: var(--rosso); }
     .messaggio { text-align: center; color: var(--grigio); padding: 40px 10px; }
     .errore { color: var(--rosso); }
   </style>
@@ -142,8 +169,17 @@
       <div class="track" id="track" role="tablist"><span class="ind" aria-hidden="true"></span></div>
     </nav>
 
-    <div class="comandi">
-      <div class="filtri-titolo">Mostra</div>
+    <!-- Riga compatta: riassunto della squadra + pulsanti che aprono Filtro e Legenda -->
+    <div class="barra" id="barra">
+      <div class="riassunto" id="riassunto"></div>
+      <button type="button" class="apri" id="apriFiltro" aria-expanded="false" aria-controls="pannelloFiltro">
+        Filtro: <span id="filtroAttivo">Tutti</span> <span class="freccia" aria-hidden="true">▼</span>
+      </button>
+      <button type="button" class="apri" id="apriLegenda" aria-expanded="false" aria-controls="pannelloLegenda">
+        Legenda <span class="freccia" aria-hidden="true">▼</span>
+      </button>
+    </div>
+    <div class="pannello" id="pannelloFiltro" hidden>
       <div class="filtri" id="filtri" role="group" aria-label="Mostra">
         <button type="button" class="filtro" data-f="tutti" aria-pressed="true">Tutti</button>
         <button type="button" class="filtro" data-f="sistemare" aria-pressed="false">Qualcosa da sistemare</button>
@@ -154,14 +190,17 @@
         <button type="button" class="filtro" data-f="advanced" aria-pressed="false">Advanced</button>
       </div>
     </div>
-
-    <div class="contatori" id="contatori"></div>
-    <div class="legenda" aria-label="Legenda colori">
-      <span><i style="background:rgba(74,222,128,.35);border:1px solid #86efac"></i>✓ a posto</span>
-      <span><i style="background:rgba(248,113,113,.35);border:1px solid #fca5a5"></i>✗ da sistemare</span>
-      <span><i style="background:rgba(250,204,21,.35);border:1px solid #fde68a"></i>! Advanced in scadenza entro un mese</span>
-      <span><i style="border:1.5px solid #facc15"></i>○ quota da pagare, c'è ancora tempo</span>
+    <div class="pannello" id="pannelloLegenda" hidden>
+      <div class="legenda" aria-label="Legenda colori">
+        <span><i style="background:rgba(74,222,128,.35);border:1px solid #86efac"></i>✓ a posto</span>
+        <span><i style="background:rgba(248,113,113,.35);border:1px solid #fca5a5"></i>✗ da sistemare</span>
+        <span><i style="background:rgba(250,204,21,.35);border:1px solid #fde68a"></i>! Advanced in scadenza entro un mese</span>
+        <span><i style="border:1.5px solid #facc15"></i>○ quota da pagare, c'è ancora tempo</span>
+      </div>
     </div>
+
+    <!-- Pagina Riepilogo (ultima della barra): i numeri di tutte le squadre -->
+    <div class="riepilogo" id="riepilogo" hidden></div>
     <div class="giocatori" id="giocatori">
       <div class="messaggio">Sto leggendo i dati…</div>
     </div>
@@ -240,6 +279,7 @@
       // Ultima pagina: tutti gli atleti di tutte le squadre (All Inclusive compresa)
       const sep2 = document.createElement('span'); sep2.className = 'sep'; track.appendChild(sep2);
       aggiungi('Tutti gli atleti', 'T:');
+      aggiungi('Riepilogo', 'R:');
 
       // Se nel link c'è già una squadra (es. ...#S:Shout) la riapro; location.hash = la parte dopo #
       const salvata = decodeURIComponent(location.hash.slice(1));
@@ -248,10 +288,25 @@
       document.querySelectorAll('.filtro').forEach(b => b.addEventListener('click', () => {
         FILTRO = b.dataset.f;
         document.querySelectorAll('.filtro').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        document.getElementById('filtroAttivo').textContent = b.textContent;
+        document.getElementById('apriFiltro').classList.toggle('attivo', FILTRO !== 'tutti');   // evidenziato se c'è un filtro
+        apriChiudi('apriFiltro', 'pannelloFiltro', false);   // scelto il filtro, il pannello si richiude
         disegna();
       }));
+      document.getElementById('apriFiltro').addEventListener('click', () => apriChiudi('apriFiltro', 'pannelloFiltro'));
+      document.getElementById('apriLegenda').addEventListener('click', () => apriChiudi('apriLegenda', 'pannelloLegenda'));
       window.addEventListener('resize', muoviIndicatore);
       aggiornaBarra();
+    }
+
+    /* apriChiudi(pulsante, pannello, aperto): mostra o nasconde un pannello.
+       Se "aperto" non è indicato, inverte lo stato attuale. hidden = nascosto. */
+    function apriChiudi(idPulsante, idPannello, aperto) {
+      const pulsante = document.getElementById(idPulsante);
+      const pannello = document.getElementById(idPannello);
+      const apri = aperto === undefined ? pannello.hidden : aperto;
+      pannello.hidden = !apri;
+      pulsante.setAttribute('aria-expanded', String(apri));
     }
 
     // scegli(v): cambia squadra, la ricorda nel link e ridisegna
@@ -300,6 +355,17 @@
     */
     function disegna() {
       const scelta = SCELTA;
+      const eRiepilogo = scelta.startsWith('R:');
+      // Nella pagina Riepilogo nascondo barra, pannelli ed elenco giocatori e mostro le schede con i numeri
+      document.getElementById('riepilogo').hidden = !eRiepilogo;
+      document.getElementById('giocatori').hidden = eRiepilogo;
+      document.getElementById('barra').hidden = eRiepilogo;
+      if (eRiepilogo) {
+        apriChiudi('apriFiltro', 'pannelloFiltro', false);
+        apriChiudi('apriLegenda', 'pannelloLegenda', false);
+        disegnaRiepilogo();
+        return;
+      }
       const eMixed = scelta.startsWith('M:');
       const eTutti = scelta.startsWith('T:');
       const nomeSquadra = scelta.slice(2);
@@ -308,18 +374,15 @@
         : tutti.filter(g => eMixed ? g.mixed === nomeSquadra : g.squadra === nomeSquadra);
       lista.sort((a, b) => a.cognome.localeCompare(b.cognome, 'it'));
 
-      // Contatori calcolati su tutta la squadra (prima del filtro)
-      const conta = test => lista.filter(test).length;
-      disegnaContatori([
-        { n: conta(g => g.quota.livello === 'verde'), testo: 'Quote a posto', livello: 'verde' },
-        { n: conta(g => g.quota.livello !== 'verde' && g.quota.testo !== 'Incerto'), testo: 'Quote da pagare', livello: 'rosso' },
-        { n: conta(g => g.quota.testo === 'Incerto'), testo: 'Incerti', livello: 'giallo' },
-        { n: conta(g => !g.modulo || !!g.notaModulo), testo: 'Moduli da sistemare', livello: 'rosso' },
-        { n: conta(g => !g.cartaceo || !g.golee), testo: 'Certificati da sistemare', livello: 'rosso' },
-        { n: conta(g => g.advanced.livello !== 'verde'), testo: 'Advanced da sistemare', livello: 'rosso' }
-      ]);
-
+      // Riassunto in una riga: quanti giocatori e quanti hanno qualcosa da sistemare (tutti i numeri sono nel Riepilogo)
+      const daFare = lista.filter(daSistemare).length;
+      const totale = lista.length;
       lista = lista.filter(FILTRI[FILTRO]);
+      const riassunto = document.getElementById('riassunto');
+      riassunto.innerHTML = '<b></b> giocatori · <span class="rosso"></span> con qualcosa da sistemare<span class="mostrati"></span>';
+      riassunto.querySelector('b').textContent = totale;
+      riassunto.querySelector('.rosso').textContent = daFare;
+      if (FILTRO !== 'tutti') riassunto.querySelector('.mostrati').textContent = ' · ne mostro ' + lista.length;
 
       const area = document.getElementById('giocatori');
       area.innerHTML = '';
@@ -332,18 +395,62 @@
       lista.forEach(g => area.appendChild(schedaGiocatore(g, eMixed || eTutti)));
     }
 
-    // disegnaContatori: crea i riquadri con i numeri in cima
-    function disegnaContatori(voci) {
-      const area = document.getElementById('contatori');
+    /*
+      Riepilogo: per ogni squadra conta i giocatori in ogni situazione.
+      VOCI_RIEPILOGO = le caselle di ogni scheda: etichetta, prova da fare su ogni giocatore, colore.
+      Per le voci "da sistemare" lo 0 diventa verde.
+    */
+    const VOCI_RIEPILOGO = [
+      { testo: 'Quote a posto', prova: g => g.quota.livello === 'verde', livello: 'verde' },
+      { testo: 'Quote da pagare', prova: g => g.quota.livello !== 'verde' && g.quota.testo !== 'Incerto', livello: 'rosso' },
+      { testo: 'Incerti', prova: g => g.quota.testo === 'Incerto', livello: 'giallo' },
+      { testo: 'Moduli da sistemare', prova: g => !g.modulo || !!g.notaModulo, livello: 'rosso' },
+      { testo: 'Cert. cartaceo mancante', prova: g => !g.cartaceo, livello: 'rosso' },
+      { testo: 'Cert. Golee mancante', prova: g => !g.golee, livello: 'rosso' },
+      { testo: 'Advanced da sistemare', prova: g => g.advanced.livello !== 'verde', livello: 'rosso' }
+    ];
+
+    function disegnaRiepilogo() {
+      const area = document.getElementById('riepilogo');
       area.innerHTML = '';
-      voci.forEach(v => {
-        const box = document.createElement('div');
-        box.className = 'contatore ' + (v.n === 0 ? 'verde' : v.livello);
-        box.innerHTML = '<div class="numero"></div><div class="etichetta"></div>';
-        box.querySelector('.numero').textContent = v.n;
-        box.querySelector('.etichetta').textContent = v.testo;
-        area.appendChild(box);
+      const squadre = [...new Set(tutti.map(g => g.squadra))].filter(Boolean).sort();
+      const ordinate = squadre.filter(n => !IN_FONDO.includes(n)).concat(IN_FONDO.filter(n => squadre.includes(n)));
+      const mixed = [...new Set(tutti.map(g => g.mixed))].filter(Boolean).sort();
+      const gruppi = [{ nome: 'Tutte le squadre', lista: tutti, tab: 'T:Tutti gli atleti', totale: true }]
+        .concat(ordinate.map(n => ({ nome: n, lista: tutti.filter(g => g.squadra === n), tab: 'S:' + n })))
+        .concat(mixed.map(n => ({ nome: n + ' (mixed)', lista: tutti.filter(g => g.mixed === n), tab: 'M:' + n })));
+      // Le squadre senza pagina propria (All Inclusive) non hanno il collegamento
+      const esistenti = [...document.querySelectorAll('.sq-tab')].map(b => b.dataset.v);
+      gruppi.forEach(gr => area.appendChild(schedaRiepilogo(gr, esistenti.includes(gr.tab))));
+    }
+
+    function schedaRiepilogo(gr, conLink) {
+      const box = document.createElement('div');
+      box.className = 'riep' + (gr.totale ? ' totale' : '');
+      const testa = document.createElement('div');
+      testa.className = 'riep-testa';
+      // Toccando il nome si apre la pagina della squadra
+      const nome = document.createElement(conLink ? 'button' : 'div');
+      nome.className = 'riep-nome';
+      nome.textContent = gr.nome;
+      if (conLink) { nome.type = 'button'; nome.addEventListener('click', () => { scegli(gr.tab); window.scrollTo(0, 0); }); }
+      const tot = document.createElement('div');
+      tot.className = 'riep-tot';
+      tot.textContent = gr.lista.length + ' giocatori';
+      testa.append(nome, tot);
+      const numeri = document.createElement('div');
+      numeri.className = 'riep-numeri';
+      VOCI_RIEPILOGO.forEach(v => {
+        const n = gr.lista.filter(v.prova).length;
+        const c = document.createElement('div');
+        c.className = 'riep-n ' + (v.livello !== 'verde' && n === 0 ? 'verde' : v.livello);
+        const num = document.createElement('div'); num.className = 'numero'; num.textContent = n;
+        const et = document.createElement('div'); et.className = 'etichetta'; et.textContent = v.testo;
+        c.append(num, et);
+        numeri.appendChild(c);
       });
+      box.append(testa, numeri);
+      return box;
     }
 
     /*
